@@ -1,0 +1,204 @@
+{
+  "rules": [
+    {
+      "rule_id": "OISD-118-4.3",
+      "regulation": "OISD-118",
+      "clause": "4.3",
+      "requirement": "Pressure relief valves must be inspected and tested at intervals not exceeding 12 months.",
+      "evidence_keywords": "pressure relief valve PRV inspection test calibration",
+      "equipment_types": ["PRV", "safety valve", "relief valve"],
+      "interval_months": 12,
+      "severity": "critical"
+    },
+    {
+      "rule_id": "OISD-118-7.1",
+      "regulation": "OISD-118",
+      "clause": "7.1",
+      "requirement": "Portable fire extinguishers must be inspected every 6 months and serviced annually.",
+      "evidence_keywords": "fire extinguisher inspection service portable",
+      "equipment_types": ["fire extinguisher"],
+      "interval_months": 6,
+      "severity": "critical"
+    },
+    {
+      "rule_id": "FACTORY-41B",
+      "regulation": "Factory Act",
+      "clause": "Section 41B",
+      "requirement": "Safety committee meetings must be conducted and minuted at least once per quarter.",
+      "evidence_keywords": "safety committee meeting minutes quarterly",
+      "equipment_types": [],
+      "interval_months": 3,
+      "severity": "high"
+    },
+    {
+      "rule_id": "FACTORY-41C",
+      "regulation": "Factory Act",
+      "clause": "Section 41C",
+      "requirement": "A qualified safety officer must be appointed and their records maintained.",
+      "evidence_keywords": "safety officer appointment qualification records",
+      "equipment_types": [],
+      "interval_months": null,
+      "severity": "high"
+    },
+    {
+      "rule_id": "PESO-PV-5YR",
+      "regulation": "PESO",
+      "clause": "Rule 61",
+      "requirement": "Pressure vessels must undergo hydraulic pressure testing every 5 years.",
+      "evidence_keywords": "pressure vessel hydraulic test hydrostatic test",
+      "equipment_types": ["pressure vessel", "vessel", "drum", "reactor"],
+      "interval_months": 60,
+      "severity": "critical"
+    },
+    {
+      "rule_id": "ISO-9001-8.5.1",
+      "regulation": "ISO-9001",
+      "clause": "8.5.1",
+      "requirement": "Documented procedures must exist for all controlled production and service conditions.",
+      "evidence_keywords": "documented procedure operating instruction SOP controlled conditions",
+      "equipment_types": [],
+      "interval_months": null,
+      "severity": "moderate"
+    },
+    {
+      "rule_id": "ISO-9001-9.2",
+      "regulation": "ISO-9001",
+      "clause": "9.2",
+      "requirement": "Internal audits must be conducted at planned intervals, at least every 12 months.",
+      "evidence_keywords": "internal audit quality audit schedule",
+      "equipment_types": [],
+      "interval_months": 12,
+      "severity": "moderate"
+    },
+    {
+      "rule_id": "OISD-118-9.2",
+      "regulation": "OISD-118",
+      "clause": "9.2",
+      "requirement": "Emergency shutdown (ESD) systems must be tested every 6 months.",
+      "evidence_keywords": "emergency shutdown ESD system test",
+      "equipment_types": ["ESD", "emergency shutdown", "SIS"],
+      "interval_months": 6,
+      "severity": "critical"
+    },
+    {
+      "rule_id": "FACTORY-13",
+      "regulation": "Factory Act",
+      "clause": "Section 13",
+      "requirement": "Adequate ventilation and air quality must be maintained and documented.",
+      "evidence_keywords": "ventilation air quality monitoring record",
+      "equipment_types": [],
+      "interval_months": null,
+      "severity": "moderate"
+    },
+    {
+      "rule_id": "OISD-118-5.1",
+      "regulation": "OISD-118",
+      "clause": "5.1",
+      "requirement": "Hot work permits must be issued for all welding, cutting, or grinding operations.",
+      "evidence_keywords": "hot work permit welding cutting grinding fire",
+      "equipment_types": [],
+      "interval_months": null,
+      "severity": "high"
+    },
+    {
+      "rule_id": "PESO-CRANE",
+      "regulation": "PESO",
+      "clause": "Rule 55",
+      "requirement": "Lifting equipment and cranes must be inspected and load-tested annually.",
+      "evidence_keywords": "crane lifting equipment load test annual inspection",
+      "equipment_types": ["crane", "hoist", "forklift"],
+      "interval_months": 12,
+      "severity": "high"
+    },
+    {
+      "rule_id": "OISD-118-6.3",
+      "regulation": "OISD-118",
+      "clause": "6.3",
+      "requirement": "Gas detectors must be calibrated and tested every 6 months.",
+      "evidence_keywords": "gas detector calibration test H2S LEL combustible",
+      "equipment_types": ["gas detector", "gas monitor"],
+      "interval_months": 6,
+      "severity": "critical"
+    },
+    {
+      "rule_id": "ISO-9001-10.2",
+      "regulation": "ISO-9001",
+      "clause": "10.2",
+      "requirement": "Non-conformances must be documented and corrective actions recorded.",
+      "evidence_keywords": "non-conformance NCR corrective action CAPA deviation",
+      "equipment_types": [],
+      "interval_months": null,
+      "severity": "moderate"
+    },
+    {
+      "rule_id": "FACTORY-21",
+      "regulation": "Factory Act",
+      "clause": "Section 21",
+      "requirement": "All machinery must be fenced and guarded. Inspection records must be maintained.",
+      "evidence_keywords": "machine guarding fencing safety guard inspection",
+      "equipment_types": [],
+      "interval_months": null,
+      "severity": "high"
+    },
+    {
+      "rule_id": "PESO-ELECTRICAL",
+      "regulation": "PESO",
+      "clause": "Rule 30",
+      "requirement": "Electrical installations in hazardous areas must be inspected every 12 months.",
+      "evidence_keywords": "electrical installation hazardous area inspection ATEX Ex-proof",
+      "equipment_types": ["electrical panel", "motor", "switch"],
+      "interval_months": 12,
+      "severity": "high"
+    },
+    {
+      "rule_id": "OISD-118-8.1",
+      "regulation": "OISD-118",
+      "clause": "8.1",
+      "requirement": "Emergency response drills must be conducted at least twice per year.",
+      "evidence_keywords": "emergency drill mock drill fire drill evacuation exercise",
+      "equipment_types": [],
+      "interval_months": 6,
+      "severity": "moderate"
+    },
+    {
+      "rule_id": "ISO-9001-7.2",
+      "regulation": "ISO-9001",
+      "clause": "7.2",
+      "requirement": "Worker competency and training records must be maintained for all personnel.",
+      "evidence_keywords": "training record competency certification personnel qualification",
+      "equipment_types": [],
+      "interval_months": null,
+      "severity": "moderate"
+    },
+    {
+      "rule_id": "FACTORY-38",
+      "regulation": "Factory Act",
+      "clause": "Section 38",
+      "requirement": "Fire fighting equipment must be maintained in working order and inspected regularly.",
+      "evidence_keywords": "fire fighting equipment maintenance fire hydrant sprinkler",
+      "equipment_types": ["hydrant", "sprinkler", "deluge"],
+      "interval_months": 6,
+      "severity": "high"
+    },
+    {
+      "rule_id": "PESO-BOILER",
+      "regulation": "PESO",
+      "clause": "Rule 102",
+      "requirement": "Boilers must undergo annual inspection and certification by a competent authority.",
+      "evidence_keywords": "boiler inspection certificate competent authority annual",
+      "equipment_types": ["boiler", "steam generator"],
+      "interval_months": 12,
+      "severity": "critical"
+    },
+    {
+      "rule_id": "OISD-118-3.2",
+      "regulation": "OISD-118",
+      "clause": "3.2",
+      "requirement": "Hazard and operability study (HAZOP) must be conducted every 5 years or after major modification.",
+      "evidence_keywords": "HAZOP hazard operability study review modification",
+      "equipment_types": [],
+      "interval_months": 60,
+      "severity": "high"
+    }
+  ]
+}
