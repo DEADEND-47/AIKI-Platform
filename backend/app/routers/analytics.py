@@ -11,10 +11,16 @@ async def get_analytics():
     by_type = {r["doc_type"]: r["count"] for r in by_type_rows}
     
     # Handle SQLite datetime query compatibility
+    # Handle SQLite/PostgreSQL datetime query compatibility
     try:
-        recent_docs_rows = db_service.execute_read("SELECT COUNT(*) as count FROM documents WHERE upload_timestamp >= datetime('now', '-30 days')")
+        if db_service.use_postgres:
+            recent_docs_query = "SELECT COUNT(*) as count FROM documents WHERE upload_timestamp >= NOW() - INTERVAL '30 days'"
+        else:
+            recent_docs_query = "SELECT COUNT(*) as count FROM documents WHERE upload_timestamp >= datetime('now', '-30 days')"
+        recent_docs_rows = db_service.execute_read(recent_docs_query)
         recent_docs = recent_docs_rows[0]["count"] if recent_docs_rows else 0
-    except Exception:
+    except Exception as e:
+        print(f"[WARNING] Failed to query recent documents: {e}")
         recent_docs = total_docs
         
     sum_pages = db_service.execute_read("SELECT SUM(page_count) as sum FROM documents")[0]["sum"] or 0
@@ -31,9 +37,14 @@ async def get_analytics():
     total_queries = db_service.execute_read("SELECT COUNT(*) as count FROM messages WHERE role = 'user'")[0]["count"]
     
     try:
-        recent_queries_rows = db_service.execute_read("SELECT COUNT(*) as count FROM messages WHERE role = 'user' AND timestamp >= datetime('now', '-7 days')")
+        if db_service.use_postgres:
+            recent_queries_query = "SELECT COUNT(*) as count FROM messages WHERE role = 'user' AND timestamp >= NOW() - INTERVAL '7 days'"
+        else:
+            recent_queries_query = "SELECT COUNT(*) as count FROM messages WHERE role = 'user' AND timestamp >= datetime('now', '-7 days')"
+        recent_queries_rows = db_service.execute_read(recent_queries_query)
         recent_queries = recent_queries_rows[0]["count"] if recent_queries_rows else 0
-    except Exception:
+    except Exception as e:
+        print(f"[WARNING] Failed to query recent queries: {e}")
         recent_queries = total_queries
         
     avg_conf_row = db_service.execute_read("SELECT AVG(confidence_score) as avg FROM messages WHERE role = 'assistant'")

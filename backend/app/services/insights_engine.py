@@ -3,10 +3,11 @@ import json
 from app.services.db_service import db_service
 
 async def find_recurring_failure_equipment():
-    # SQLite group_concat works similarly to postgres string_agg
+    # SQLite group_concat vs postgres string_agg
+    agg_func = "string_agg(DISTINCT e1.doc_id, ',')" if db_service.use_postgres else "group_concat(DISTINCT e1.doc_id)"
     rows = db_service.execute_read(
-        """
-        SELECT e1.value as tag, COUNT(DISTINCT e1.doc_id) as failure_count, group_concat(DISTINCT e1.doc_id) as doc_ids
+        f"""
+        SELECT e1.value as tag, COUNT(DISTINCT e1.doc_id) as failure_count, {agg_func} as doc_ids
         FROM entities e1
         JOIN entities e2 ON e1.doc_id = e2.doc_id
         WHERE e1.type = 'equipment_tag' AND e2.type = 'failure_mode'
