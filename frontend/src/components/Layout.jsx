@@ -1,11 +1,53 @@
-import React from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
-import { FileText, Brain, ShieldAlert, Hexagon, Moon, Sun } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { FileText, Brain, ShieldAlert, Hexagon, Moon, LogOut } from 'lucide-react';
 
 export function Layout({ children }) {
   const location = useLocation();
+  const navigate = useNavigate();
   const currentPath = location.pathname;
   
+  const token = localStorage.getItem('token');
+  const isLoginPage = currentPath === '/login';
+
+  // Get user details
+  const [user, setUser] = useState(null);
+  useEffect(() => {
+    const cachedUser = localStorage.getItem('user');
+    if (cachedUser) {
+      try {
+        setUser(JSON.parse(cachedUser));
+      } catch (e) {
+        setUser(null);
+      }
+    }
+  }, [token]);
+
+  // Plant selector logic
+  const [selectedPlantId, setSelectedPlantId] = useState(
+    localStorage.getItem('plantId') || 'p1-ohio-1111-1111-111111111111'
+  );
+  
+  const plants = [
+    { plant_id: 'p1-ohio-1111-1111-111111111111', name: 'Plant Alpha', location: 'Ohio' },
+    { plant_id: 'p2-texas-2222-2222-222222222222', name: 'Plant Beta', location: 'Texas' }
+  ];
+
+  const handlePlantChange = (e) => {
+    const val = e.target.value;
+    setSelectedPlantId(val);
+    localStorage.setItem('plantId', val);
+    window.location.reload();
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setUser(null);
+    navigate('/login');
+    window.location.reload();
+  };
+
   const navItems = [
     { name: 'Document Hub', path: '/documents', icon: FileText },
     { name: 'Knowledge Copilot', path: '/copilot', icon: Brain },
@@ -13,26 +55,56 @@ export function Layout({ children }) {
     { name: 'Knowledge Graph', path: '/graph', icon: Hexagon },
   ];
 
+  // Shield rendering if not logged in
+  if (isLoginPage || !token) {
+    return (
+      <div className="min-h-screen bg-surface flex items-center justify-center p-4">
+        {children}
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-surface flex flex-col lg:flex-row text-text-primary">
       {/* DESKTOP SIDEBAR (>= 1024px) */}
       <aside className="hidden lg:flex flex-col fixed left-0 top-0 bottom-0 w-[240px] bg-surface-sidebar border-r border-surface-border z-30 justify-between p-4">
-        <div className="space-y-6">
+        <div className="space-y-4">
           {/* Logo */}
-          <div className="flex items-center gap-2 px-2 py-3 select-none">
+          <div className="flex items-center gap-2 px-2 py-2 select-none">
             <div className="p-1.5 bg-accent-blue/10 border border-accent-blue/30 rounded-md text-accent-blue">
-              <Hexagon className="w-6 h-6 animate-pulse" />
+              <Hexagon className="w-5 h-5 animate-pulse" />
             </div>
-            <span className="text-xl font-bold tracking-tight bg-gradient-to-r from-accent-blue to-accent-purple bg-clip-text text-transparent">
+            <span className="text-lg font-bold tracking-tight bg-gradient-to-r from-accent-blue to-accent-purple bg-clip-text text-transparent">
               AIKI
             </span>
-            <span className="text-[10px] uppercase tracking-widest text-text-muted mt-1 font-mono font-bold">
+            <span className="text-[9px] uppercase tracking-widest text-text-muted mt-1 font-mono font-bold">
               Brain
             </span>
           </div>
 
+          {/* Plant Selector Dropdown */}
+          <div className="px-2 py-1 select-none">
+            <label className="text-[9px] uppercase font-mono tracking-widest text-text-muted font-bold block mb-1">
+              Active Facility
+            </label>
+            <select
+              value={selectedPlantId}
+              onChange={handlePlantChange}
+              className="w-full bg-[#161B22] border border-surface-border rounded-md px-2.5 py-1.5 text-xs text-text-primary focus:outline-none focus:border-accent-blue transition-colors cursor-pointer"
+            >
+              {plants.map(p => (
+                <option key={p.plant_id} value={p.plant_id}>
+                  {p.name} ({p.location})
+                </option>
+              ))}
+              {user && user.role === 'admin' && (
+                <option value="all">All Facilities (Cross-Plant)</option>
+              )}
+            </select>
+          </div>
+
           {/* Navigation Links */}
-          <nav className="space-y-1">
+          <nav className="space-y-1 pt-2">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = currentPath === item.path || (item.path === '/documents' && currentPath === '/');
@@ -55,16 +127,38 @@ export function Layout({ children }) {
         </div>
 
         {/* Bottom Panel */}
-        <div className="border-t border-surface-border pt-4 space-y-4">
+        <div className="border-t border-surface-border pt-4 space-y-3">
+          {user && (
+            <div className="px-2 py-1 flex items-center justify-between border-b border-surface-border/50 pb-3 mb-1 select-none">
+              <div className="space-y-0.5">
+                <span className="text-[9px] uppercase font-mono tracking-wider text-text-muted font-bold block">
+                  Signed in as
+                </span>
+                <span className="text-xs text-text-primary font-medium block truncate max-w-[120px]">
+                  {user.email.split('@')[0]}
+                </span>
+                <span className="inline-block text-[8px] font-mono font-bold text-accent-purple bg-accent-purple/10 border border-accent-purple/20 px-1 py-0.2 rounded uppercase mt-0.5">
+                  {user.role}
+                </span>
+              </div>
+              <button 
+                onClick={handleLogout}
+                title="Log out"
+                className="text-text-muted hover:text-accent-red border border-surface-border hover:bg-accent-red/10 p-1.5 rounded transition-colors"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
           <div className="flex items-center justify-between px-2 text-xs text-text-muted select-none">
             <span>Mode: Dark</span>
             <button className="text-text-secondary hover:text-text-primary transition-colors p-1 rounded hover:bg-[#1C2128]">
               <Moon className="w-4 h-4" />
             </button>
           </div>
-          <div className="flex items-center justify-between px-2 text-[11px] font-mono text-text-muted select-none">
+          <div className="flex items-center justify-between px-2 text-[10px] font-mono text-text-muted select-none">
             <span>AIKI Platform</span>
-            <span>v1.0.0</span>
+            <span>v2.0.0</span>
           </div>
         </div>
       </aside>
@@ -75,9 +169,17 @@ export function Layout({ children }) {
           <Hexagon className="w-5 h-5 text-accent-blue" />
           <span className="font-bold text-lg text-text-primary tracking-tight">AIKI</span>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
+          {user && (
+            <button 
+              onClick={handleLogout}
+              className="text-text-muted hover:text-accent-red border border-surface-border px-2 py-1 rounded text-[10px] uppercase font-mono font-bold"
+            >
+              Logout
+            </button>
+          )}
           <span className="text-[10px] font-mono bg-surface border border-surface-border px-1.5 py-0.5 rounded text-text-secondary">
-            v1.0.0
+            v2.0.0
           </span>
         </div>
       </header>
@@ -94,7 +196,6 @@ export function Layout({ children }) {
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = currentPath === item.path || (item.path === '/documents' && currentPath === '/');
-          // Short names for mobile tabs
           const shortName = item.name.replace('Knowledge ', '').replace(' Hub', '');
           return (
             <NavLink

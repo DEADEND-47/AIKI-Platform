@@ -20,14 +20,17 @@ async def query_copilot(req: QueryRequest):
         raise HTTPException(status_code=400, detail="Query cannot be empty")
         
     doc_type = None
+    plant_id = None
     if req.filters:
         doc_type = req.filters.get("doc_type")
+        plant_id = req.filters.get("plant_id")
         
     result = await answer_query(
         query=req.query,
         session_id=req.session_id,
         doc_type=doc_type,
-        top_k=req.top_k or 5
+        top_k=req.top_k or 5,
+        plant_id=plant_id
     )
     
     # Map sources

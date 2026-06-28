@@ -2,7 +2,7 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import get_settings
-from app.routers import documents, graph, copilot, compliance
+from app.routers import documents, graph, copilot, compliance, auth, ws, equipment
 from app.services.db_service import db_service
 from app.services.graph_service import graph_service
 
@@ -30,6 +30,9 @@ app.include_router(documents.router, prefix="/api/v1")
 app.include_router(graph.router, prefix="/api/v1")
 app.include_router(copilot.router, prefix="/api/v1")
 app.include_router(compliance.router, prefix="/api/v1")
+app.include_router(auth.router, prefix="/api/v1")
+app.include_router(equipment.router, prefix="/api/v1")
+app.include_router(ws.router)
 
 import asyncio
 import httpx
@@ -133,3 +136,9 @@ async def health_check():
         "version": "1.0.0",
         "services": services
     }
+
+@app.on_event("startup")
+async def startup_event():
+    from app.services.scheduler import start_scheduler
+    start_scheduler()
+    print("[STARTUP] Compliance scheduler initialized successfully.")

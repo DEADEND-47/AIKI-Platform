@@ -105,6 +105,23 @@ class DBService:
                 completed_at TIMESTAMP,
                 results TEXT -- Store scan results as JSON string
             )
+            """,
+            """
+            CREATE TABLE IF NOT EXISTS plants (
+                plant_id VARCHAR(50) PRIMARY KEY,
+                name VARCHAR(200),
+                location VARCHAR(200),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+            """,
+            """
+            CREATE TABLE IF NOT EXISTS users (
+                user_id VARCHAR(50) PRIMARY KEY,
+                email VARCHAR(150) UNIQUE NOT NULL,
+                password_hash VARCHAR(255) NOT NULL,
+                role VARCHAR(20) DEFAULT 'viewer',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
             """
         ]
         
@@ -112,6 +129,8 @@ class DBService:
         cursor = conn.cursor()
         try:
             for query in queries:
+                if not self.use_postgres:
+                    query = query.replace("%s", "?")
                 cursor.execute(query)
             conn.commit()
             print("[INFO] SQL tables initialized successfully.")
@@ -121,6 +140,66 @@ class DBService:
         finally:
             cursor.close()
             self.release_connection(conn)
+
+        # Apply schema alterations if not exists
+        self.add_column_if_not_exists("documents", "plant_id", "VARCHAR(50)")
+        self.add_column_if_not_exists("documents", "version", "INTEGER", "1")
+        self.add_column_if_not_exists("documents", "parent_doc_id", "VARCHAR(50)")
+        self.add_column_if_not_exists("documents", "is_latest", "BOOLEAN", "TRUE")
+        self.add_column_if_not_exists("jobs", "plant_id", "VARCHAR(50)")
+
+        # Seed default plants
+        try:
+            plants_count = self.execute_read("SELECT COUNT(*) as count FROM plants")[0]["count"]
+        except Exception:
+            plants_count = 0
+            
+        if plants_count == 0:
+            plant_ohio_id = "p1-ohio-1111-1111-111111111111"
+            plant_texas_id = "p2-texas-2222-2222-222222222222"
+            self.execute_write(
+                "INSERT INTO plants (plant_id, name, location) VALUES (%s, %s, %s)",
+                (plant_ohio_id, "Plant Alpha", "Ohio")
+            )
+            self.execute_write(
+                "INSERT INTO plants (plant_id, name, location) VALUES (%s, %s, %s)",
+                (plant_texas_id, "Plant Beta", "Texas")
+            )
+            print("[INFO] Seeded default plants.")
+            
+        # Seed default admin user
+        try:
+            users_count = self.execute_read("SELECT COUNT(*) as count FROM users")[0]["count"]
+        except Exception:
+            users_count = 0
+            
+        if users_count == 0:
+            import bcrypt
+            admin_id = "u1-admin-0000-0000-000000000000"
+            admin_email = "admin@aiki.ai"
+            salt = bcrypt.gensalt()
+            admin_password_hash = bcrypt.hashpw("adminpassword".encode("utf-8"), salt).decode("utf-8")
+            self.execute_write(
+                "INSERT INTO users (user_id, email, password_hash, role) VALUES (%s, %s, %s, %s)",
+                (admin_id, admin_email, admin_password_hash, "admin")
+            )
+            print("[INFO] Seeded default admin user.")
+
+    def add_column_if_not_exists(self, table: str, column: str, col_type: str, default_val: str = None):
+        default_clause = f" DEFAULT {default_val}" if default_val is not None else ""
+        query = f"ALTER TABLE {table} ADD COLUMN {column} {col_type}{default_clause}"
+        try:
+            if not self.use_postgres:
+                query = query.replace("%s", "?")
+            self.execute_write(query)
+            print(f"[INFO] Added column {column} to table {table}.")
+        except Exception as e:
+            err_msg = str(e).lower()
+            if "duplicate column" in err_msg or "already exists" in err_msg or "operationalerror" in err_msg or "duplicate" in err_msg:
+                # Column already exists
+                pass
+            else:
+                print(f"[WARNING] Could not add column {column} to table {table}: {e}")
 
     def execute_write(self, query: str, params: tuple = ()) -> int:
         if not self.use_postgres:

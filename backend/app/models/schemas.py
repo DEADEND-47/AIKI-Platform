@@ -37,6 +37,10 @@ class DocumentMetadata(BaseModel):
     status: str   # queued | processing | completed | failed
     entity_count: int
     tags: List[str] = []
+    version: Optional[int] = 1
+    parent_doc_id: Optional[str] = None
+    is_latest: Optional[bool] = True
+    plant_id: Optional[str] = None
 
 class JobStatus(BaseModel):
     job_id: str

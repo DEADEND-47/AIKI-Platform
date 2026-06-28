@@ -107,6 +107,16 @@ export function Copilot() {
     }
   }, [sessionHistory]);
 
+  // Load previous sessions list from local storage on mount
+  useEffect(() => {
+    const cached = localStorage.getItem('aiki_sessions');
+    if (cached) {
+      try {
+        setSessions(JSON.parse(cached));
+      } catch (e) {}
+    }
+  }, []);
+
   // Query Copilot Mutation
   const copilotMutation = useMutation({
     mutationFn: (payload) => queryCopilot(payload),
@@ -133,7 +143,9 @@ export function Copilot() {
           firstQuery: data.query,
           time: new Date().toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
         };
-        setSessions([newSession, ...sessions]);
+        const updated = [newSession, ...sessions];
+        setSessions(updated);
+        localStorage.setItem('aiki_sessions', JSON.stringify(updated));
       }
     },
     onError: (err) => {
@@ -161,8 +173,9 @@ export function Copilot() {
     setInputValue('');
     setIsFilterOpen(false);
 
-    // Call API
-    const filters = {};
+    // Call API with plant filters
+    const activePlantId = localStorage.getItem('plantId') || 'p1-ohio-1111-1111-111111111111';
+    const filters = { plant_id: activePlantId };
     if (filterDocTypes.length > 0) {
       filters.doc_type = filterDocTypes[0]; // Simple single type filter in RAG
     }
@@ -170,7 +183,7 @@ export function Copilot() {
     copilotMutation.mutate({
       query: text,
       session_id: activeSessionId || undefined,
-      filters: Object.keys(filters).length > 0 ? filters : undefined,
+      filters: filters,
       top_k: 5
     });
   };

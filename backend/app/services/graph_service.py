@@ -419,5 +419,79 @@ class GraphService:
         conn.close()
         return result
 
+    def get_full_graph(self, limit: int = 200) -> Dict[str, Any]:
+        nodes_dict = {}
+        links = []
+        
+        if self.use_neo4j:
+            try:
+                # Query docs and their relationships
+                q_docs = """
+                MATCH (d:Document)
+                RETURN d.doc_id as id, d.filename as label, "document" as type
+                LIMIT $limit
+                """
+                # Query entities
+                q_ents = """
+                MATCH (e:Entity)
+                RETURN e.entity_id as id, e.value as label, e.type as type
+                LIMIT $limit
+                """
+                # Query relationships
+                q_rels = """
+                MATCH (n)-[r]->(m)
+                WHERE (n:Document OR n:Entity) AND (m:Document OR m:Entity)
+                RETURN coalesce(n.entity_id, n.doc_id) as source, 
+                       coalesce(m.entity_id, m.doc_id) as target, 
+                       type(r) as type
+                LIMIT $limit
+                """
+                with self.driver.session() as session:
+                    docs_res = session.run(q_docs, limit=limit)
+                    for rec in docs_res:
+                        nodes_dict[rec["id"]] = {"id": rec["id"], "value": rec["label"], "type": rec["type"]}
+                        
+                    ents_res = session.run(q_ents, limit=limit)
+                    for rec in ents_res:
+                        nodes_dict[rec["id"]] = {"id": rec["id"], "value": rec["label"], "type": rec["type"]}
+                        
+                    rels_res = session.run(q_rels, limit=limit)
+                    for rec in rels_res:
+                        links.append({"source": rec["source"], "target": rec["target"], "type": rec["type"]})
+                        
+                return {"nodes": list(nodes_dict.values()), "links": links}
+            except Exception as e:
+                print(f"[ERROR] Neo4j get_full_graph error: {e}. Falling back to SQLite.")
+                
+        # SQLite fallback
+        conn = sqlite3.connect(self.sqlite_path)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        
+        cursor.execute("SELECT node_id, label, type, value FROM graph_nodes LIMIT ?", (limit,))
+        nodes_rows = cursor.fetchall()
+        
+        nodes = []
+        for row in nodes_rows:
+            nodes.append({
+                "id": row["node_id"],
+                "value": row["value"],
+                "type": row["type"]
+            })
+            
+        cursor.execute("SELECT source_id, target_id, type FROM graph_edges LIMIT ?", (limit,))
+        edges_rows = cursor.fetchall()
+        
+        links = []
+        for row in edges_rows:
+            links.append({
+                "source": row["source_id"],
+                "target": row["target_id"],
+                "type": row["type"]
+            })
+            
+        conn.close()
+        return {"nodes": nodes, "links": links}
+
 # Singleton instance
 graph_service = GraphService()

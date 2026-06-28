@@ -67,5 +67,33 @@ class TestAIKIBackend(unittest.TestCase):
         self.assertEqual(data["status"], "queued")
         print(f"[TEST] Compliance scan initiated: {data}")
 
+    def test_auth_login_flow(self):
+        print("[TEST] Testing authentication endpoints...")
+        # 1. Login with seeded credentials
+        login_payload = {
+            "email": "admin@aiki.ai",
+            "password": "adminpassword"
+        }
+        res = client.post("/api/v1/auth/login", json=login_payload)
+        self.assertEqual(res.status_code, 200)
+        data = res.json()
+        self.assertIn("access_token", data)
+        self.assertEqual(data["user"]["role"], "admin")
+        token = data["access_token"]
+        
+        # 2. Get profile
+        headers = {"Authorization": f"Bearer {token}"}
+        res_me = client.get("/api/v1/auth/me", headers=headers)
+        self.assertEqual(res_me.status_code, 200)
+        self.assertEqual(res_me.json()["email"], "admin@aiki.ai")
+        
+        # 3. Bad credentials
+        bad_payload = {
+            "email": "admin@aiki.ai",
+            "password": "wrongpassword"
+        }
+        res_bad = client.post("/api/v1/auth/login", json=bad_payload)
+        self.assertEqual(res_bad.status_code, 400)
+
 if __name__ == "__main__":
     unittest.main()

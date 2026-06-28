@@ -21,3 +21,7 @@ async def get_entity_relationships(entity_id: str):
     if not result or result.get("value") == "Unknown":
         raise HTTPException(status_code=404, detail="Entity not found or has no relationships")
     return result
+
+@router.get("/graph/full")
+async def get_full_graph(limit: int = Query(200, ge=1, le=500)):
+    return graph_service.get_full_graph(limit=limit)

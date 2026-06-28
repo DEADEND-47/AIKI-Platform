@@ -160,7 +160,7 @@ def chunk_text(text: str, chunk_size_words: int = 400, overlap_words: int = 40) 
         i += chunk_size_words - overlap_words
     return chunks
 
-async def process_ingestion_job(job_id: str, files_info: List[Dict[str, str]], doc_type: str, tags: List[str]):
+async def process_ingestion_job(job_id: str, files_info: List[Dict[str, str]], doc_type: str, tags: List[str], plant_id: str = None):
     """Background ingestion task. Never crashes — handles individual file exceptions and marks job completed/completed_with_errors."""
     print(f"[INGESTION] Starting Job {job_id} containing {len(files_info)} files.")
     
@@ -169,6 +169,18 @@ async def process_ingestion_job(job_id: str, files_info: List[Dict[str, str]], d
         "UPDATE jobs SET status = 'processing', progress = 10 WHERE job_id = %s",
         (job_id,)
     )
+    try:
+        from app.routers.ws import manager
+        import asyncio
+        asyncio.create_task(manager.broadcast_to_job(job_id, {
+            "job_id": job_id,
+            "status": "processing",
+            "progress": 10,
+            "documents_processed": 0,
+            "entities_extracted": 0
+        }))
+    except Exception:
+        pass
     
     documents_processed = 0
     total_entities_extracted = 0
@@ -181,13 +193,43 @@ async def process_ingestion_job(job_id: str, files_info: List[Dict[str, str]], d
             doc_id = str(uuid.uuid4())
             
             try:
-                # 1. Create Document row in DB as processing
+                # 1. Versioning: Check if duplicate filename exists (scoped by plant)
+                existing = None
+                if plant_id:
+                    existing = db_service.execute_read(
+                        "SELECT doc_id, version FROM documents WHERE filename = %s AND plant_id = %s ORDER BY version DESC LIMIT 1",
+                        (filename, plant_id)
+                    )
+                else:
+                    existing = db_service.execute_read(
+                        "SELECT doc_id, version FROM documents WHERE filename = %s AND plant_id IS NULL ORDER BY version DESC LIMIT 1",
+                        (filename,)
+                    )
+                
+                version = 1
+                parent_doc_id = None
+                if existing:
+                    parent_doc_id = existing[0]["doc_id"]
+                    version = existing[0]["version"] + 1
+                    # Mark all previous versions as not latest
+                    if plant_id:
+                        db_service.execute_write(
+                            "UPDATE documents SET is_latest = FALSE WHERE filename = %s AND plant_id = %s",
+                            (filename, plant_id)
+                        )
+                    else:
+                        db_service.execute_write(
+                            "UPDATE documents SET is_latest = FALSE WHERE filename = %s AND plant_id IS NULL",
+                            (filename,)
+                        )
+                
+                # Create Document row in DB as processing
                 db_service.execute_write(
                     """
-                    INSERT INTO documents (doc_id, filename, doc_type, status, page_count, tags)
-                    VALUES (%s, %s, %s, %s, %s, %s)
+                    INSERT INTO documents (doc_id, filename, doc_type, status, page_count, tags, version, parent_doc_id, is_latest, plant_id)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     """,
-                    (doc_id, filename, doc_type, "processing", 0, ",".join(tags))
+                    (doc_id, filename, doc_type, "processing", 0, ",".join(tags), version, parent_doc_id, True, plant_id)
                 )
                 
                 # 2. Parse File
@@ -266,7 +308,9 @@ async def process_ingestion_job(job_id: str, files_info: List[Dict[str, str]], d
                                         "chunk_index": chunk_idx,
                                         "upload_timestamp": timestamp_str,
                                         "tags": tags,
-                                        "text": chunk_text_data
+                                        "text": chunk_text_data,
+                                        "version": version,
+                                        "plant_id": plant_id
                                     }
                                 )
                             )
@@ -301,6 +345,18 @@ async def process_ingestion_job(job_id: str, files_info: List[Dict[str, str]], d
                     """,
                     (pct, documents_processed, total_entities_extracted, job_id)
                 )
+                try:
+                    from app.routers.ws import manager
+                    import asyncio
+                    asyncio.create_task(manager.broadcast_to_job(job_id, {
+                        "job_id": job_id,
+                        "status": "processing",
+                        "progress": pct,
+                        "documents_processed": documents_processed,
+                        "entities_extracted": total_entities_extracted
+                    }))
+                except Exception:
+                    pass
                 
             except Exception as file_err:
                 print(f"[ERROR] Ingestion failed for file {filename}: {file_err}")
@@ -320,16 +376,55 @@ async def process_ingestion_job(job_id: str, files_info: List[Dict[str, str]], d
                 (error_summary, job_id)
             )
             print(f"[INGESTION] Completed Job {job_id} with some errors: {error_summary}")
+            try:
+                from app.routers.ws import manager
+                import asyncio
+                asyncio.create_task(manager.broadcast_to_job(job_id, {
+                    "job_id": job_id,
+                    "status": "completed_with_errors",
+                    "progress": 100,
+                    "documents_processed": documents_processed,
+                    "entities_extracted": total_entities_extracted,
+                    "error": error_summary
+                }))
+            except Exception:
+                pass
         else:
             db_service.execute_write(
                 "UPDATE jobs SET status = 'completed', progress = 100 WHERE job_id = %s",
                 (job_id,)
             )
             print(f"[INGESTION] Completed Job {job_id} successfully.")
+            try:
+                from app.routers.ws import manager
+                import asyncio
+                asyncio.create_task(manager.broadcast_to_job(job_id, {
+                    "job_id": job_id,
+                    "status": "completed",
+                    "progress": 100,
+                    "documents_processed": documents_processed,
+                    "entities_extracted": total_entities_extracted
+                }))
+            except Exception:
+                pass
             
     except Exception as job_err:
+        err_msg = f"Catastrophic failure: {str(job_err)[:200]}"
         print(f"[INGESTION] Ingestion job {job_id} encountered catastrophic failure: {job_err}")
         db_service.execute_write(
             "UPDATE jobs SET status = 'failed', error = %s WHERE job_id = %s",
-            (f"Catastrophic failure: {str(job_err)[:200]}", job_id)
+            (err_msg, job_id)
         )
+        try:
+            from app.routers.ws import manager
+            import asyncio
+            asyncio.create_task(manager.broadcast_to_job(job_id, {
+                "job_id": job_id,
+                "status": "failed",
+                "progress": 0,
+                "documents_processed": documents_processed,
+                "entities_extracted": total_entities_extracted,
+                "error": err_msg
+            }))
+        except Exception:
+            pass

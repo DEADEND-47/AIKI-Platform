@@ -2,11 +2,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Upload, Search, FileText, X, Filter, ChevronRight, RefreshCw, Layers } from 'lucide-react';
-import { listDocuments, uploadDocuments, getDocument, getJobStatus } from '../api/client';
+import { listDocuments, uploadDocuments, getDocument, getJobStatus, getDocumentVersions, compareDocumentVersions } from '../api/client';
 import EntityChip from '../components/EntityChip';
 import SkeletonTable from '../components/SkeletonLoader';
 import EmptyState from '../components/EmptyState';
 import { useToast } from '../hooks/useToast';
+import EquipmentTimelineModal from '../components/EquipmentTimelineModal';
 
 const DOC_TYPES = [
   { value: 'maintenance_record', label: 'Maintenance Record' },
@@ -22,6 +23,8 @@ export function Documents() {
   const queryClient = useQueryClient();
   const { success, error: toastError, info } = useToast();
   
+  const activePlantId = localStorage.getItem('plantId') || 'p1-ohio-1111-1111-111111111111';
+
   // States
   const [selectedDocType, setSelectedDocType] = useState('maintenance_record');
   const [tagInput, setTagInput] = useState('');
@@ -35,6 +38,9 @@ export function Documents() {
   const [displayProgress, setDisplayProgress] = useState(0);
   const [selectedDocId, setSelectedDocId] = useState(null);
   const [activeEntityTab, setActiveEntityTab] = useState('equipment_tag');
+  
+  const [compareDocId, setCompareDocId] = useState('');
+  const [activeTimelineTag, setActiveTimelineTag] = useState(null);
 
   const pollIntervalRef = useRef(null);
 
@@ -64,10 +70,10 @@ export function Documents() {
 
   // List Documents query
   const { data: documentList = [], isLoading, refetch } = useQuery({
-    queryKey: ['documents', filterDocType, searchQuery],
+    queryKey: ['documents', filterDocType, searchQuery, activePlantId],
     queryFn: () => listDocuments({ 
       doc_type: filterDocType || undefined,
-      // Search is client-side filtered in this simple table or can be parsed
+      plant_id: activePlantId
     }),
     refetchInterval: 5000, // Refresh documents table every 5s
   });
@@ -86,8 +92,23 @@ export function Documents() {
     enabled: !!selectedDocId,
   });
 
+  // Document Versions query
+  const { data: docVersions = [], isLoading: isLoadingVersions } = useQuery({
+    queryKey: ['documentVersions', selectedDocId],
+    queryFn: () => getDocumentVersions(selectedDocId),
+    enabled: !!selectedDocId,
+  });
+
+  // Versions Compare query
+  const { data: compareResult, isLoading: isLoadingCompare } = useQuery({
+    queryKey: ['versionsCompare', selectedDocId, compareDocId],
+    queryFn: () => compareDocumentVersions(selectedDocId, compareDocId),
+    enabled: !!selectedDocId && !!compareDocId,
+  });
+
   // Upload mutation
   const uploadMutation = useMutation({
+    queryKey: ['uploadDocuments'],
     mutationFn: (formData) => uploadDocuments(formData),
     onSuccess: (data) => {
       success('Files uploaded successfully! Starting ingestion pipeline...');
@@ -116,8 +137,41 @@ export function Documents() {
     if (tags.length > 0) {
       formData.append('tags', tags.join(','));
     }
+    formData.append('plant_id', activePlantId);
     uploadMutation.mutate(formData);
   };
+
+  // Job WebSocket Progress
+  useEffect(() => {
+    if (!activeJobId) return;
+    
+    const wsUrl = (window.location.protocol === 'https:' ? 'wss://' : 'ws://') + 
+                  (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1')
+                    .replace('http://', '')
+                    .replace('https://', '')
+                    .replace('/api/v1', '') + 
+                  `/ws/jobs/${activeJobId}`;
+                  
+    const socket = new WebSocket(wsUrl);
+    
+    socket.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        console.log("[WS] Received progress update:", data);
+        setJobProgress(data);
+        if (['completed', 'failed', 'completed_with_errors'].includes(data.status)) {
+          queryClient.invalidateQueries(['documents']);
+          socket.close();
+        }
+      } catch (e) {
+        console.error("[WS] Error parsing websocket update:", e);
+      }
+    };
+    
+    return () => {
+      socket.close();
+    };
+  }, [activeJobId, queryClient]);
 
   // Job Polling & Animation
   useEffect(() => {
@@ -550,6 +604,109 @@ export function Documents() {
                   </div>
                 )}
 
+                {/* Versioning & History Timeline */}
+                <div className="space-y-3 bg-[#1C2128] border border-surface-border rounded-md p-3.5 select-none">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-xs font-semibold text-text-primary flex items-center gap-1.5">
+                      <Layers className="w-3.5 h-3.5 text-accent-blue" />
+                      Document Version History
+                    </h4>
+                    <span className="text-[10px] font-mono bg-accent-blue/10 border border-accent-blue/20 px-1.5 py-0.2 rounded text-accent-blue">
+                      v{docDetails.metadata.version} {docDetails.metadata.is_latest ? '(Latest)' : ''}
+                    </span>
+                  </div>
+
+                  {/* Versions Timeline List */}
+                  {isLoadingVersions ? (
+                    <div className="text-[10px] text-text-muted italic">Loading versions...</div>
+                  ) : docVersions.length <= 1 ? (
+                    <p className="text-[10px] text-text-muted">No historical versions exist for this procedure.</p>
+                  ) : (
+                    <div className="space-y-2">
+                      <div className="flex flex-wrap gap-1.5 max-h-[80px] overflow-y-auto pt-1">
+                        {docVersions.map((v) => (
+                          <button
+                            key={v.doc_id}
+                            onClick={() => { setSelectedDocId(v.doc_id); setCompareDocId(''); }}
+                            className={`text-[10px] font-mono px-2 py-0.8 rounded border transition-colors ${
+                              v.doc_id === selectedDocId
+                                ? 'bg-accent-blue/20 text-white border-accent-blue'
+                                : 'bg-surface text-text-secondary border-surface-border hover:border-text-muted'
+                            }`}
+                          >
+                            v{v.version} {v.is_latest ? '★' : ''}
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Compare Selector */}
+                      <div className="pt-2 border-t border-surface-border/50 space-y-1.5">
+                        <label className="text-[9px] uppercase font-mono tracking-wider text-text-muted font-bold block">
+                          Compare with another version
+                        </label>
+                        <select
+                          value={compareDocId}
+                          onChange={(e) => setCompareDocId(e.target.value)}
+                          className="w-full bg-surface border border-surface-border rounded px-2 py-1 text-[11px] text-text-primary focus:outline-none focus:border-accent-blue cursor-pointer"
+                        >
+                          <option value="">-- Select version --</option>
+                          {docVersions
+                            .filter(v => v.doc_id !== selectedDocId)
+                            .map(v => (
+                              <option key={v.doc_id} value={v.doc_id}>
+                                Version {v.version} ({formatDate(v.upload_timestamp)})
+                              </option>
+                            ))
+                          }
+                        </select>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Compare results box */}
+                  {compareDocId && compareResult && (
+                    <div className="mt-3 bg-surface border border-surface-border rounded p-3 space-y-2 text-[11px] select-text">
+                      <div className="flex justify-between items-center text-[10px] font-mono border-b border-surface-border/50 pb-1 mb-1">
+                        <span className="text-text-muted">Compare Results</span>
+                        <button onClick={() => setCompareDocId('')} className="text-accent-red hover:underline">Clear</button>
+                      </div>
+                      <p className="text-text-secondary leading-relaxed font-medium">
+                        {compareResult.summary}
+                      </p>
+                      
+                      {/* Added entities */}
+                      {compareResult.added_entities.length > 0 && (
+                        <div className="space-y-1 pt-1">
+                          <span className="text-accent-green font-bold block text-[9px] uppercase tracking-wider">Added Entities ({compareResult.added_entities.length})</span>
+                          <div className="flex flex-wrap gap-1">
+                            {compareResult.added_entities.slice(0, 5).map((e, i) => (
+                              <span key={i} className="bg-accent-green/5 border border-accent-green/20 px-1 py-0.2 rounded text-[10px] text-accent-green font-mono">
+                                {e.value}
+                              </span>
+                            ))}
+                            {compareResult.added_entities.length > 5 && <span className="text-[10px] text-text-muted">+{compareResult.added_entities.length - 5} more</span>}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Removed entities */}
+                      {compareResult.removed_entities.length > 0 && (
+                        <div className="space-y-1 pt-1">
+                          <span className="text-accent-red font-bold block text-[9px] uppercase tracking-wider">Removed Entities ({compareResult.removed_entities.length})</span>
+                          <div className="flex flex-wrap gap-1">
+                            {compareResult.removed_entities.slice(0, 5).map((e, i) => (
+                              <span key={i} className="bg-accent-red/5 border border-accent-red/20 px-1 py-0.2 rounded text-[10px] text-accent-red font-mono">
+                                {e.value}
+                              </span>
+                            ))}
+                            {compareResult.removed_entities.length > 5 && <span className="text-[10px] text-text-muted">+{compareResult.removed_entities.length - 5} more</span>}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
                 {/* Entities Section tabs */}
                 <div className="space-y-4">
                   <div className="flex justify-between items-center border-b border-surface-border pb-2">
@@ -605,7 +762,13 @@ export function Documents() {
                           return (
                             <div key={e.entity_id} className="p-3 bg-surface border border-surface-border rounded-md space-y-2 hover:bg-[#1C2128] transition-colors">
                               <div className="flex justify-between items-center">
-                                <EntityChip type={e.type} value={e.value} />
+                                <div 
+                                  onClick={() => e.type === 'equipment_tag' && setActiveTimelineTag(e.value)} 
+                                  className={e.type === 'equipment_tag' ? 'cursor-pointer hover:opacity-80' : ''}
+                                  title={e.type === 'equipment_tag' ? 'Click to view asset lifecycle timeline' : ''}
+                                >
+                                  <EntityChip type={e.type} value={e.value} />
+                                </div>
                                 <span className="text-[10px] font-mono text-text-muted">
                                   Page {e.page}
                                 </span>
@@ -648,6 +811,12 @@ export function Documents() {
             </div>
           </div>
         </div>
+      )}
+      {activeTimelineTag && (
+        <EquipmentTimelineModal 
+          tag={activeTimelineTag} 
+          onClose={() => setActiveTimelineTag(null)} 
+        />
       )}
     </div>
   );

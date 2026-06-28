@@ -137,18 +137,26 @@ export function Compliance() {
   const handleExportResults = async () => {
     if (!scanResult) return;
     try {
-      info('Generating audit package...');
-      const data = await exportScan(scanResult.scan_id);
+      info('Downloading PDF compliance report...');
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1';
+      const token = localStorage.getItem('token');
       
-      // Trigger JSON Download
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data.package, null, 2));
+      const response = await fetch(`${baseUrl}/compliance/scans/${scanResult.scan_id}/export`, {
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+      });
+      
+      if (!response.ok) throw new Error('Failed to generate PDF');
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
       const downloadAnchor = document.createElement('a');
-      downloadAnchor.setAttribute("href", dataStr);
-      downloadAnchor.setAttribute("download", `aiki_compliance_report_${scanResult.scan_id}.json`);
+      downloadAnchor.href = url;
+      downloadAnchor.setAttribute("download", `aiki_compliance_report_${scanResult.scan_id.slice(0, 8)}.pdf`);
       document.body.appendChild(downloadAnchor);
       downloadAnchor.click();
       downloadAnchor.remove();
-      success('Audit package downloaded!');
+      window.URL.revokeObjectURL(url);
+      success('Compliance PDF downloaded successfully!');
     } catch (err) {
       toastError(`Export failed: ${err.message || 'Error downloading file'}`);
     }

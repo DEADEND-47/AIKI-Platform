@@ -316,14 +316,16 @@ def token_overlap_rerank(query: str, texts: List[str]) -> List[float]:
         scores.append(score)
     return scores
 
-async def search_qdrant_chunks(query_embedding: List[float], doc_type: Optional[str] = None, top_k: int = 20) -> List[Any]:
+async def search_qdrant_chunks(query_embedding: List[float], doc_type: Optional[str] = None, top_k: int = 20, plant_id: Optional[str] = None) -> List[Any]:
     from qdrant_client.models import Filter, FieldCondition, MatchValue
     
-    q_filter = None
+    conditions = []
     if doc_type:
-        q_filter = Filter(must=[
-            FieldCondition(key="doc_type", match=MatchValue(value=doc_type))
-        ])
+        conditions.append(FieldCondition(key="doc_type", match=MatchValue(value=doc_type)))
+    if plant_id and plant_id != "all":
+        conditions.append(FieldCondition(key="plant_id", match=MatchValue(value=plant_id)))
+        
+    q_filter = Filter(must=conditions) if conditions else None
         
     try:
         if hasattr(qdrant_client, 'search'):
@@ -348,7 +350,7 @@ async def search_qdrant_chunks(query_embedding: List[float], doc_type: Optional[
         print(f"[ERROR] Qdrant search failed: {e}")
         return []
 
-async def answer_query(query: str, session_id: Optional[str] = None, doc_type: Optional[str] = None, top_k: int = 5) -> Dict[str, Any]:
+async def answer_query(query: str, session_id: Optional[str] = None, doc_type: Optional[str] = None, top_k: int = 5, plant_id: Optional[str] = None) -> Dict[str, Any]:
     # Ensure session exists or create it
     if not session_id:
         session_id = str(uuid.uuid4())
@@ -404,7 +406,7 @@ async def answer_query(query: str, session_id: Optional[str] = None, doc_type: O
             query_embedding = [0.0] * 768
             
         # 2. Retrieve top 20 chunks from Qdrant
-        results = await search_qdrant_chunks(query_embedding, doc_type, top_k=20)
+        results = await search_qdrant_chunks(query_embedding, doc_type, top_k=20, plant_id=plant_id)
         
         if not results:
             answer = "I could not find any relevant documentation in the system. Please upload maintenance, safety, or regulatory documents first."

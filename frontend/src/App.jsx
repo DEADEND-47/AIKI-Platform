@@ -6,6 +6,7 @@ import Documents from './pages/Documents';
 import Copilot from './pages/Copilot';
 import Compliance from './pages/Compliance';
 import Graph from './pages/Graph';
+import Login from './pages/Login';
 import ToastContainer from './components/Toast';
 
 // Initialize React Query Client
@@ -18,17 +19,27 @@ const queryClient = new QueryClient({
   },
 });
 
+// Guard helper to protect private routes
+function ProtectedRoute({ children }) {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    return <Navigate to="/login" replace />;
+  }
+  return children;
+}
+
 export function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <Layout>
           <Routes>
-            <Route path="/" element={<Navigate to="/documents" replace />} />
-            <Route path="/documents" element={<Documents />} />
-            <Route path="/copilot" element={<Copilot />} />
-            <Route path="/compliance" element={<Compliance />} />
-            <Route path="/graph" element={<Graph />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/" element={<ProtectedRoute><Navigate to="/documents" replace /></ProtectedRoute>} />
+            <Route path="/documents" element={<ProtectedRoute><Documents /></ProtectedRoute>} />
+            <Route path="/copilot" element={<ProtectedRoute><Copilot /></ProtectedRoute>} />
+            <Route path="/compliance" element={<ProtectedRoute><Compliance /></ProtectedRoute>} />
+            <Route path="/graph" element={<ProtectedRoute><Graph /></ProtectedRoute>} />
             <Route path="*" element={<Navigate to="/documents" replace />} />
           </Routes>
         </Layout>
