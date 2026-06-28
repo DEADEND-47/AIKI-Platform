@@ -45,6 +45,21 @@ async def query_copilot(req: QueryRequest):
             relevance_score=src["relevance_score"]
         ))
         
+    # Log query to query_logs table for analytics tracking
+    try:
+        import uuid
+        from app.services.db_service import db_service
+        query_id = str(uuid.uuid4())
+        db_service.execute_write(
+            """
+            INSERT INTO query_logs (query_id, session_id, query_text, confidence_label, confidence_score, plant_id)
+            VALUES (%s, %s, %s, %s, %s, %s)
+            """,
+            (query_id, result["session_id"], req.query, result.get("confidence_label"), result["confidence_score"], plant_id)
+        )
+    except Exception as log_err:
+        print(f"[ERROR] Failed to log query to query_logs: {log_err}")
+        
     return CopilotResponse(
         session_id=result["session_id"],
         query=result["query"],

@@ -136,6 +136,26 @@ class DBService:
                 resolution TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
+            """,
+            """
+            CREATE TABLE IF NOT EXISTS query_logs (
+                query_id VARCHAR(50) PRIMARY KEY,
+                session_id VARCHAR(50),
+                query_text TEXT,
+                confidence_label VARCHAR(10),
+                confidence_score FLOAT,
+                plant_id VARCHAR(50),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+            """,
+            """
+            CREATE TABLE IF NOT EXISTS equipment_risk_scores (
+                tag VARCHAR(100) PRIMARY KEY,
+                risk_score INTEGER DEFAULT 0,
+                risk_level VARCHAR(20),
+                factors TEXT,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
             """
         ]
         
