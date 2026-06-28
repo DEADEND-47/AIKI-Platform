@@ -3,58 +3,134 @@
 @tailwind utilities;
 
 @layer base {
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
   body {
     background-color: var(--bg-primary);
     color: var(--text-primary);
-    font-family: 'Inter', sans-serif;
-    transition: background-color 0.15s ease, color 0.15s ease;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  ::selection {
+    background-color: var(--accent-blue);
+    color: white;
   }
 }
 
-/* Custom scrollbars matching theme */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-::-webkit-scrollbar-track {
-  background: var(--bg-sidebar);
-}
-::-webkit-scrollbar-thumb {
-  background: var(--border);
-  border-radius: 3px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: var(--text-muted);
+@layer components {
+  /* ── AI Badge (gradient sparkle) ── */
+  .ai-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid transparent;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    user-select: none;
+    background: linear-gradient(135deg, var(--accent-purple) 0%, var(--accent-blue) 100%);
+    color: white;
+  }
+
+  /* ── Section label ── */
+  .section-label {
+    font-size: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+  }
+
+  /* ── AI gradient text ── */
+  .ai-gradient-text {
+    background: linear-gradient(135deg, var(--accent-purple) 0%, var(--accent-blue) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
 }
 
-/* Shimmer animation for skeleton load */
+/* ─────────────────────────────────────────
+   Custom Scrollbars
+───────────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 99px;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+/* ─────────────────────────────────────────
+   Shimmer / Skeleton animation
+───────────────────────────────────────── */
 .shimmer-bg {
   position: relative;
   overflow: hidden;
   background-color: var(--bg-card);
 }
-
 .shimmer-bg::after {
   position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
+  inset: 0;
   transform: translateX(-100%);
   background-image: linear-gradient(
     90deg,
     rgba(128, 128, 128, 0) 0%,
-    rgba(128, 128, 128, 0.1) 20%,
-    rgba(128, 128, 128, 0.25) 60%,
+    rgba(128, 128, 128, 0.08) 40%,
+    rgba(128, 128, 128, 0.18) 60%,
     rgba(128, 128, 128, 0) 100%
   );
-  animation: shimmer-anim 2s infinite;
+  animation: shimmer-anim 1.8s ease-in-out infinite;
   content: '';
 }
-
 @keyframes shimmer-anim {
-  100% {
-    transform: translateX(100%);
-  }
+  100% { transform: translateX(100%); }
 }
 
+/* ─────────────────────────────────────────
+   Slide-in drawer animation
+───────────────────────────────────────── */
+@keyframes slide-in-right {
+  from { transform: translateX(100%); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+.drawer-enter {
+  animation: slide-in-right 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ─────────────────────────────────────────
+   Fade-in for dropdowns / search results
+───────────────────────────────────────── */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in {
+  animation: fade-in 0.15s ease-out forwards;
+}
+
+/* ─────────────────────────────────────────
+   Dropzone dashed border pulse
+───────────────────────────────────────── */
+@keyframes dash-pulse {
+  0%, 100% { opacity: 0.6; }
+  50%       { opacity: 1; }
+}
+.dropzone-active {
+  animation: dash-pulse 1.2s ease-in-out infinite;
+}

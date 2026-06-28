@@ -35,9 +35,16 @@ export function Analytics() {
 
   if (isLoading) {
     return (
-      <div className="py-24 flex flex-col items-center gap-3 text-xs text-text-muted italic select-none">
-        <RefreshCw className="w-8 h-8 animate-spin text-accent-blue" />
-        Processing plant system telemetry...
+      <div className="space-y-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {[1,2,3,4].map(n => (
+            <div key={n} className="bg-surface-card border border-surface-border rounded-xl p-4 space-y-3">
+              <div className="shimmer-bg h-3 rounded w-1/2" />
+              <div className="shimmer-bg h-7 rounded w-1/3" />
+            </div>
+          ))}
+        </div>
+        <div className="shimmer-bg h-64 rounded-xl" />
       </div>
     );
   }
@@ -70,7 +77,7 @@ export function Analytics() {
         <button
           onClick={() => refetch()}
           disabled={isFetching}
-          className="flex items-center gap-1.5 bg-[#21262D] hover:bg-[#30363D] text-text-primary text-xs font-semibold py-2 px-4 rounded border border-surface-border transition-colors"
+          className="btn-ghost text-xs flex items-center gap-1.5"
         >
           <RefreshCw className={`w-3.5 h-3.5 ${isFetching ? 'animate-spin' : ''}`} />
           Refresh
@@ -142,9 +149,14 @@ export function Analytics() {
                 <XAxis type="number" stroke="#7D8590" fontSize={10} />
                 <YAxis dataKey="name" type="category" stroke="#7D8590" fontSize={10} width={60} />
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#161B22', borderColor: '#30363D', borderRadius: '6px' }}
-                  itemStyle={{ color: '#E6EDF3', fontSize: '12px' }}
-                  labelStyle={{ color: '#7D8590', fontSize: '10px' }}
+                  contentStyle={{ 
+                    backgroundColor: 'var(--bg-card)', 
+                    borderColor: 'var(--border)', 
+                    borderRadius: '8px',
+                    fontSize: '12px'
+                  }}
+                  itemStyle={{ color: 'var(--text-primary)', fontSize: '12px' }}
+                  labelStyle={{ color: 'var(--text-muted)', fontSize: '10px' }}
                 />
                 <Bar dataKey="value" fill="#2F81F7" radius={[0, 4, 4, 0]} barSize={12} />
               </BarChart>
@@ -179,8 +191,12 @@ export function Analytics() {
                     ))}
                   </Pie>
                   <Tooltip
-                    contentStyle={{ backgroundColor: '#161B22', borderColor: '#30363D', borderRadius: '6px' }}
-                    itemStyle={{ fontSize: '12px' }}
+                    contentStyle={{ 
+                      backgroundColor: 'var(--bg-card)', 
+                      borderColor: 'var(--border)', 
+                      borderRadius: '8px' 
+                    }}
+                    itemStyle={{ fontSize: '12px', color: 'var(--text-primary)' }}
                   />
                 </PieChart>
               </ResponsiveContainer>
@@ -243,21 +259,21 @@ export function Analytics() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center text-xs">
-          <div className="p-4 bg-[#1C2128]/40 border border-surface-border/40 rounded-lg space-y-1.5">
+          <div className="p-4 bg-surface-card/40 border border-surface-border rounded-xl space-y-1.5">
             <span className="text-[10px] text-text-muted uppercase font-mono tracking-widest">Average Compliance Rate</span>
             <span className="text-2xl font-bold font-mono text-accent-green">
               {Math.round(stats?.compliance?.avg_compliance_rate || 90)}%
             </span>
           </div>
 
-          <div className="p-4 bg-[#1C2128]/40 border border-surface-border/40 rounded-lg space-y-1.5">
+          <div className="p-4 bg-surface-card/40 border border-surface-border rounded-xl space-y-1.5">
             <span className="text-[10px] text-text-muted uppercase font-mono tracking-widest">Most Violated Regulation</span>
             <span className="text-sm font-bold text-accent-amber truncate block">
               {stats?.compliance?.most_violated_regulation || 'OISD-118'}
             </span>
           </div>
 
-          <div className="p-4 bg-[#1C2128]/40 border border-surface-border/40 rounded-lg space-y-1.5">
+          <div className="p-4 bg-surface-card/40 border border-surface-border rounded-xl space-y-1.5">
             <span className="text-[10px] text-text-muted uppercase font-mono tracking-widest">Total Compliance Runs</span>
             <span className="text-2xl font-bold font-mono text-accent-blue">
               {stats?.compliance?.total_scans}

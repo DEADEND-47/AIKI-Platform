@@ -206,10 +206,10 @@ export function Compliance() {
                   key={reg}
                   onClick={() => toggleRegulation(reg)}
                   disabled={isScanning}
-                  className={`text-xs px-3.5 py-1.5 rounded-full border transition-all duration-150 ${
+                  className={`text-xs px-3.5 py-1.5 rounded-full border transition-all duration-150 active:scale-95 ${
                     isSelected
                       ? 'bg-accent-blue/15 border-accent-blue text-accent-blue font-semibold shadow-sm'
-                      : 'border-surface-border text-text-secondary hover:text-text-primary hover:bg-[#1C2128]'
+                      : 'border-surface-border text-text-secondary hover:text-text-primary hover:bg-surface-card'
                   }`}
                 >
                   {reg}
@@ -223,7 +223,7 @@ export function Compliance() {
           <button
             onClick={handleRunScan}
             disabled={selectedRegs.length === 0 || isScanning}
-            className="flex items-center justify-center gap-2 bg-accent-blue hover:bg-accent-blue/90 disabled:bg-[#21262D] disabled:text-text-muted text-white text-sm font-semibold py-2 px-4 rounded transition-colors"
+            className="btn-primary text-sm flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100"
           >
             {isScanning ? (
               <>
@@ -252,7 +252,7 @@ export function Compliance() {
               Scanning vectors and running LLM checks on regulations for {selectedRegs.join(', ')}...
             </p>
           </div>
-          <div className="w-48 bg-[#21262D] h-2 rounded-full overflow-hidden mx-auto">
+          <div className="w-48 bg-surface h-2 rounded-full overflow-hidden mx-auto border border-surface-border">
             <div className="bg-accent-amber h-full rounded-full animate-[shimmer-anim_2s_infinite]" style={{ width: '40%' }} />
           </div>
         </div>
@@ -405,7 +405,7 @@ export function Compliance() {
                           {/* Requirement */}
                           <div className="space-y-1">
                             <span className="text-[10px] font-bold text-text-secondary uppercase tracking-wider block">Requirement Definition</span>
-                            <p className="text-xs text-text-secondary leading-relaxed pl-2 border-l border-[#30363D]">
+                            <p className="text-xs text-text-secondary leading-relaxed pl-2 border-l-2 border-surface-border">
                               {gap.requirement}
                             </p>
                           </div>
@@ -435,7 +435,7 @@ export function Compliance() {
                               <span className="text-[10px] font-bold text-text-secondary uppercase tracking-wider block">Analyzed Evidence Documents</span>
                               <div className="flex flex-wrap gap-2">
                                 {gap.evidence_documents.map((doc, dIdx) => (
-                                  <div key={dIdx} className="flex items-center gap-1.5 bg-[#1C2128] border border-surface-border px-2.5 py-1 rounded text-xs font-mono text-text-primary select-none">
+                                  <div key={dIdx} className="flex items-center gap-1.5 bg-surface border border-surface-border px-2.5 py-1 rounded-lg text-xs font-mono text-text-primary select-none hover:bg-surface-card transition-colors">
                                     <FileText className="w-3.5 h-3.5 text-accent-blue" />
                                     {doc.filename}
                                   </div>
