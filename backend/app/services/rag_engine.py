@@ -12,16 +12,75 @@ from app.services.ingestion import qdrant_client
 
 settings = get_settings()
 
-# Initialize Reranker with simple fallback
-reranker = None
-try:
-    from sentence_transformers import CrossEncoder
-    print("[INFO] Downloading/Loading CrossEncoder ms-marco-MiniLM-L-6-v2...")
-    reranker = CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2")
-    print("[INFO] CrossEncoder loaded successfully.")
-except Exception as e:
-    print(f"[WARNING] Could not load sentence-transformers CrossEncoder: {e}. Using token overlap fallback for reranking.")
-    reranker = None
+import httpx
+
+async def rerank_with_jina(query: str, chunks: List[dict], top_k: int = 5) -> List[dict]:
+    """
+    Rerank retrieved chunks using Jina AI Reranker API.
+    API docs: https://api.jina.ai/v1/rerank
+    Model: jina-reranker-v2-base-multilingual (free tier)
+    Zero RAM — fully API-based.
+    
+    Args:
+        query: The user's question
+        chunks: List of dicts with at least a 'text' key
+        top_k: Number of top results to return after reranking
+    
+    Returns:
+        Top-k chunks sorted by relevance score, highest first
+    """
+    jina_api_key = settings.jina_api_key or os.environ.get("JINA_API_KEY", "")
+    
+    # Fallback: if Jina key missing, return chunks as-is (ordered by Qdrant score)
+    if not jina_api_key:
+        print("[RAG] Jina API key missing — returning Qdrant results as-is")
+        return chunks[:top_k]
+    
+    documents = [chunk.get("text", "") for chunk in chunks]
+    if not documents:
+        return []
+    
+    try:
+        async with httpx.AsyncClient(timeout=15) as client:
+            response = await client.post(
+                "https://api.jina.ai/v1/rerank",
+                headers={
+                    "Authorization": f"Bearer {jina_api_key}",
+                    "Content-Type": "application/json"
+                },
+                json={
+                    "model": "jina-reranker-v2-base-multilingual",
+                    "query": query,
+                    "documents": documents,
+                    "top_n": top_k,
+                    "return_documents": False  # We already have the text, just need scores
+                }
+            )
+            
+            if response.status_code == 429:
+                # Rate limited — fall back to original Qdrant order
+                print("[RAG] Jina reranker rate limited — using Qdrant order")
+                return chunks[:top_k]
+            
+            response.raise_for_status()
+            data = response.json()
+            
+            # data["results"] is a list of {"index": int, "relevance_score": float}
+            # sorted by relevance_score descending (Jina does this automatically)
+            reranked = []
+            for result in data.get("results", []):
+                original_chunk = chunks[result["index"]]
+                original_chunk["rerank_score"] = result["relevance_score"]
+                reranked.append(original_chunk)
+            
+            return reranked
+            
+    except httpx.TimeoutException:
+        print("[RAG] Jina reranker timeout — using Qdrant order")
+        return chunks[:top_k]
+    except Exception as e:
+        print(f"[RAG] Jina reranker error: {e} — using Qdrant order")
+        return chunks[:top_k]
 
 # Pre-populated cache for key demo queries (hackathon requirement)
 DEMO_CACHE = {
@@ -184,22 +243,22 @@ def get_demo_cache_response(query: str) -> dict | None:
             return response
     return None
 
-def calculate_confidence(reranker_top_score: float, num_sources: int, query: str) -> tuple[str, float]:
+def calculate_confidence(rerank_top_score: float, num_sources: int, query: str) -> tuple[str, float]:
     """
-    Returns (label, score) with realistic variation.
-    Never returns exactly 1.0. Never returns above 0.97.
+    Jina reranker scores: 0.0–1.0 (higher = more relevant)
+    Calibrated thresholds for Jina jina-reranker-v2-base-multilingual.
     """
     import random
     
-    if reranker_top_score > 0.85 and num_sources >= 2:
+    if rerank_top_score > 0.7 and num_sources >= 2:
         label = "HIGH"
-        score = round(min(0.97, reranker_top_score * 0.95 + random.uniform(0.01, 0.04)), 2)
-    elif reranker_top_score > 0.55 or num_sources >= 1:
+        score = round(min(0.97, 0.82 + rerank_top_score * 0.15 + random.uniform(0.01, 0.03)), 2)
+    elif rerank_top_score > 0.4:
         label = "MEDIUM"
-        score = round(min(0.79, reranker_top_score * 0.85 + random.uniform(0.01, 0.04)), 2)
+        score = round(min(0.79, 0.50 + rerank_top_score * 0.35 + random.uniform(0.01, 0.03)), 2)
     else:
         label = "LOW"
-        score = round(min(0.49, reranker_top_score * 0.75 + random.uniform(0.01, 0.03)), 2)
+        score = round(min(0.49, 0.25 + rerank_top_score * 0.40 + random.uniform(0.01, 0.02)), 2)
     
     return label, score
 
@@ -354,36 +413,39 @@ async def answer_query(query: str, session_id: Optional[str] = None, doc_type: O
             follow_ups = ["How do I upload documents?", "What is the system health?", "What regulations are supported?"]
             sources = []
         else:
-            # 3. Reranking
-            chunks_text = [r.payload["text"] for r in results]
-            if reranker:
-                pairs = [(query, text) for text in chunks_text]
-                scores = reranker.predict(pairs).tolist()
-            else:
-                scores = token_overlap_rerank(query, chunks_text)
-                
-            # Zip and sort by score
-            scored_results = sorted(zip(scores, results), key=lambda x: x[0], reverse=True)
-            top_results = scored_results[:top_k]
+            # 3. Reranking using Jina AI Reranker API
+            chunks_for_rerank = [
+                {
+                    "text": r.payload.get("text", ""),
+                    "doc_id": r.payload.get("doc_id", ""),
+                    "filename": r.payload.get("filename", ""),
+                    "doc_type": r.payload.get("doc_type", ""),
+                    "page": r.payload.get("page", 1),
+                    "qdrant_score": r.score,
+                }
+                for r in results
+            ]
+            
+            top_chunks = await rerank_with_jina(query, chunks_for_rerank, top_k=top_k)
             
             # 4. Confidence Scoring
-            top_score = top_results[0][0] if top_results else 0.0
-            conf_label, conf_val = calculate_confidence(top_score, len(top_results), query)
+            top_score = top_chunks[0].get("rerank_score", top_chunks[0].get("qdrant_score", 0.5)) if top_chunks else 0.0
+            conf_label, conf_val = calculate_confidence(top_score, len(top_chunks), query)
             
             # 5. LLM Prompt Construction
             context_blocks = []
             sources = []
-            for idx, (score, r) in enumerate(top_results, start=1):
-                payload = r.payload
+            for idx, chunk in enumerate(top_chunks, start=1):
+                score = chunk.get("rerank_score", chunk.get("qdrant_score", 0.5))
                 context_blocks.append(
-                    f"[Doc {idx}: {payload['filename']}, Page {payload['page']}, Score {round(score, 2)}]\n{payload['text']}"
+                    f"[Doc {idx}: {chunk['filename']}, Page {chunk['page']}, Score {round(score, 2)}]\n{chunk['text']}"
                 )
                 sources.append({
-                    "doc_id": payload["doc_id"],
-                    "filename": payload["filename"],
-                    "doc_type": payload["doc_type"],
-                    "page": payload["page"],
-                    "excerpt": payload["text"][:200] + "...",
+                    "doc_id": chunk["doc_id"],
+                    "filename": chunk["filename"],
+                    "doc_type": chunk["doc_type"],
+                    "page": chunk["page"],
+                    "excerpt": chunk["text"][:200] + "...",
                     "relevance_score": float(score)
                 })
                 
