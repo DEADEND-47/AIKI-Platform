@@ -88,9 +88,9 @@ export function Settings() {
         
         {/* FACILITY PROFILE CARD */}
         <div className="bg-surface-card border border-surface-border rounded-lg p-5 shadow-sm space-y-4">
-          <h3 className="text-sm font-bold uppercase tracking-wider text-text-secondary flex items-center gap-2 font-mono">
+          <h3 className="text-sm font-medium text-text-secondary flex items-center gap-2">
             <Globe className="w-4 h-4 text-accent-blue" />
-            Active Profile
+            Active profile
           </h3>
           <p className="text-xs text-text-secondary leading-normal">
             Switching active facility profiles changes the contextual filters for compliance documents and risk heatmaps.
@@ -144,8 +144,8 @@ export function Settings() {
                     <div className="text-[10px] text-text-muted mt-0.5">Cross-Plant Global Scope</div>
                   </div>
                 </div>
-                <span className="text-[10px] font-mono text-accent-purple bg-accent-purple/10 px-1.5 py-0.2 rounded font-bold uppercase select-none">
-                  ADMIN ONLY
+                <span className="text-[10px] font-mono text-accent-purple bg-accent-purple/10 px-1.5 py-0.2 rounded font-medium select-none">
+                  Admin only
                 </span>
               </label>
             )}
@@ -154,39 +154,50 @@ export function Settings() {
 
         {/* UI VISUAL THEME CARD */}
         <div className="bg-surface-card border border-surface-border rounded-lg p-5 shadow-sm space-y-4">
-          <h3 className="text-sm font-bold uppercase tracking-wider text-text-secondary flex items-center gap-2 font-mono">
+          <h3 className="text-sm font-medium text-text-secondary flex items-center gap-2">
             <LayoutIcon className="w-4 h-4 text-accent-blue" />
-            Visual Customization
+            Visual customization
           </h3>
           <p className="text-xs text-text-secondary leading-normal">
             Choose a visual appearance theme. Theme adjustments persist automatically.
           </p>
 
-          <div className="grid grid-cols-3 gap-2.5">
-            {themes.map((t) => (
-              <button
-                key={t}
-                onClick={() => setTheme(t)}
-                className={`p-3.5 border rounded-lg text-center transition-all capitalize select-none text-xs font-semibold flex flex-col items-center justify-center gap-2 ${
-                  theme === t 
-                    ? 'bg-accent-blue/10 border-accent-blue text-text-primary shadow-sm'
-                    : 'border-surface-border bg-surface hover:bg-surface/75 text-text-secondary'
-                }`}
-              >
-                <div className={`w-3.5 h-3.5 rounded-full border ${
-                  t === 'dark' ? 'bg-[#181816]' : t === 'light' ? 'bg-[#fcfbf9]' : 'bg-[#000000]'
-                }`} />
-                {t}
-              </button>
-            ))}
+          <div className="grid grid-cols-3 gap-3">
+            {themes.map((t) => {
+              const swatches = {
+                dark: { bg: '#181816', card: '#22221f', accent: '#d97756' },
+                light: { bg: '#fcfbf9', card: '#ffffff', accent: '#c96f53' },
+                industrial: { bg: '#000000', card: '#111111', accent: '#FFD700' }
+              };
+              const swatch = swatches[t] || swatches.dark;
+              const isSelected = theme === t;
+              return (
+                <button
+                  key={t}
+                  onClick={() => setTheme(t)}
+                  className={`p-4 border-2 rounded-xl text-center transition-all capitalize select-none text-xs font-medium flex flex-col items-center justify-center gap-3 w-full outline-none ${
+                    isSelected
+                      ? 'border-[#D85A30] bg-[#D85A30]/5 text-text-primary shadow-md'
+                      : 'border-surface-border bg-surface hover:bg-surface/75 text-text-secondary'
+                  }`}
+                >
+                  <div className="flex gap-1 p-1 bg-surface-card rounded border border-surface-border">
+                    <span className="w-3.5 h-3.5 rounded-full border border-surface-border/40" style={{ backgroundColor: swatch.bg }} title="Background" />
+                    <span className="w-3.5 h-3.5 rounded-full border border-surface-border/40" style={{ backgroundColor: swatch.card }} title="Card" />
+                    <span className="w-3.5 h-3.5 rounded-full border border-surface-border/40" style={{ backgroundColor: swatch.accent }} title="Accent" />
+                  </div>
+                  <span className="font-semibold">{t}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
 
         {/* ACCOUNT INFORMATION CARD */}
         <div className="bg-surface-card border border-surface-border rounded-lg p-5 shadow-sm space-y-4">
-          <h3 className="text-sm font-bold uppercase tracking-wider text-text-secondary flex items-center gap-2 font-mono">
+          <h3 className="text-sm font-medium text-text-secondary flex items-center gap-2">
             <User className="w-4 h-4 text-accent-blue" />
-            Security & Authentication
+            Security & authentication
           </h3>
           
           <div className="bg-surface border border-surface-border rounded-lg p-4 space-y-3.5 text-xs">
@@ -197,7 +208,7 @@ export function Settings() {
             <div className="h-px bg-surface-border" />
             <div className="flex justify-between items-center">
               <span className="text-text-secondary">Role Classification:</span>
-              <span className="inline-block text-[10px] font-mono font-bold text-accent-purple bg-accent-purple/10 border border-accent-purple/20 px-2.5 py-0.5 rounded uppercase select-none">
+              <span className="inline-block text-[10px] font-mono font-medium text-accent-purple bg-accent-purple/10 border border-accent-purple/20 px-2.5 py-0.5 rounded select-none">
                 {user?.role || 'Guest'}
               </span>
             </div>
@@ -214,9 +225,9 @@ export function Settings() {
         {/* API TELEMETRY DIAGNOSTICS CARD */}
         <div className="bg-surface-card border border-surface-border rounded-lg p-5 shadow-sm space-y-4">
           <div className="flex justify-between items-center border-b border-surface-border pb-2.5">
-            <h3 className="text-sm font-bold uppercase tracking-wider text-text-secondary flex items-center gap-2 font-mono">
+            <h3 className="text-sm font-medium text-text-secondary flex items-center gap-2">
               <Server className="w-4 h-4 text-accent-blue" />
-              API Diagnostics
+              API diagnostics
             </h3>
             <button
               onClick={runDiagnostics}

@@ -156,16 +156,30 @@ export function Graph() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         {/* Interactive Graph Visualizer Container */}
-        <div className="lg:col-span-2 bg-[#0D1117] border border-surface-border rounded-md min-h-[500px] h-[550px] relative overflow-hidden flex flex-col justify-center items-center">
+        <div 
+          className="lg:col-span-2 border border-surface-border rounded-xl min-h-[500px] h-[550px] relative overflow-hidden flex flex-col justify-center items-center"
+          style={{ 
+            backgroundColor: 'var(--bg-card)', 
+            backgroundImage: 'radial-gradient(rgba(128, 128, 128, 0.08) 1.5px, transparent 1.5px)', 
+            backgroundSize: '20px 20px' 
+          }}
+        >
           {isLoadingGraph ? (
-            <div className="flex flex-col items-center gap-3 text-xs text-text-muted italic">
+            <div className="flex flex-col items-center gap-3 text-xs text-text-muted italic z-10">
               <RefreshCw className="w-6 h-6 animate-spin text-accent-blue" />
               Building force-directed graph...
             </div>
           ) : graphData.nodes.length === 0 ? (
-            <div className="text-center p-6 space-y-2 select-none">
-              <p className="text-xs text-text-secondary">No relationships to display yet.</p>
-              <p className="text-[10px] text-text-muted">Please ingest industrial documents in the Hub first.</p>
+            <div className="flex flex-col items-center justify-center text-center p-8 space-y-4 max-w-sm select-none z-10">
+              <div className="p-4 bg-surface rounded-full border border-surface-border text-text-secondary">
+                <Network className="w-12 h-12 stroke-[1.5]" />
+              </div>
+              <div className="space-y-1.5">
+                <h3 className="text-sm font-semibold text-text-primary">No relationships to display yet</h3>
+                <p className="text-xs text-text-secondary leading-relaxed">
+                  Ingest industrial work orders, safety manuals, or spreadsheets in the Document Hub to build your interactive knowledge graph.
+                </p>
+              </div>
             </div>
           ) : (
             <div className="w-full h-full">
@@ -223,8 +237,8 @@ export function Graph() {
               
               {/* Header Info */}
               <div className="border-b border-surface-border pb-4 space-y-3">
-                <span className="text-[9px] uppercase font-mono tracking-widest text-text-muted font-bold block">
-                  Node Inspector
+                <span className="text-[11px] font-medium text-text-muted block">
+                  Node inspector
                 </span>
                 <div>
                   <h3 className="text-base font-bold font-mono text-text-primary break-all">

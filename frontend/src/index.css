@@ -46,13 +46,11 @@
     color: white;
   }
 
-  /* ── Section label ── */
+  /* ── Section header label ── */
   .section-label {
-    font-size: 10px;
-    font-family: 'JetBrains Mono', monospace;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
+    font-size: 11px;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 500;
     color: var(--text-muted);
   }
 
@@ -127,6 +125,18 @@
 /* ─────────────────────────────────────────
    Dropzone dashed border pulse
 ───────────────────────────────────────── */
+@keyframes border-pulse {
+  0%, 100% { border-color: var(--border); }
+  50% { border-color: #D85A30; }
+}
+.dropzone-hover {
+  transition: all 0.3s ease-in-out;
+}
+.dropzone-hover:hover {
+  animation: border-pulse 2s infinite ease-in-out;
+  background-color: rgba(216, 90, 48, 0.03);
+}
+
 @keyframes dash-pulse {
   0%, 100% { opacity: 0.6; }
   50%       { opacity: 1; }

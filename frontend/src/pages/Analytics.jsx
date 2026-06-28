@@ -91,7 +91,7 @@ export function Analytics() {
             <FileText className="w-6 h-6" />
           </div>
           <div>
-            <span className="text-[10px] uppercase font-mono tracking-wider text-text-muted block">Total Documents</span>
+            <span className="text-[11px] font-medium text-text-muted block">Total documents</span>
             <span className="text-xl font-bold text-text-primary">{stats?.documents?.total}</span>
           </div>
         </div>
@@ -101,7 +101,7 @@ export function Analytics() {
             <BookOpen className="w-6 h-6" />
           </div>
           <div>
-            <span className="text-[10px] uppercase font-mono tracking-wider text-text-muted block">Pages Processed</span>
+            <span className="text-[11px] font-medium text-text-muted block">Pages processed</span>
             <span className="text-xl font-bold text-text-primary">{stats?.documents?.total_pages_processed}</span>
           </div>
         </div>
@@ -111,7 +111,7 @@ export function Analytics() {
             <Tag className="w-6 h-6" />
           </div>
           <div>
-            <span className="text-[10px] uppercase font-mono tracking-wider text-text-muted block">Entities Extracted</span>
+            <span className="text-[11px] font-medium text-text-muted block">Entities extracted</span>
             <span className="text-xl font-bold text-text-primary">{stats?.entities?.total}</span>
           </div>
         </div>
@@ -121,7 +121,7 @@ export function Analytics() {
             <TrendingUp className="w-6 h-6" />
           </div>
           <div>
-            <span className="text-[10px] uppercase font-mono tracking-wider text-text-muted block">New (Last 30 Days)</span>
+            <span className="text-[11px] font-medium text-text-muted block">New (last 30 days)</span>
             <span className="text-xl font-bold text-text-primary">{stats?.documents?.ingested_last_30_days}</span>
           </div>
         </div>
@@ -134,8 +134,8 @@ export function Analytics() {
         <div className="bg-surface border border-surface-border rounded-lg p-5 space-y-4 shadow-sm">
           <div className="flex items-center gap-2 border-b border-surface-border pb-2">
             <BarChart2 className="w-4 h-4 text-accent-blue" />
-            <h3 className="text-xs font-bold uppercase tracking-wider text-text-secondary">
-              Top Asset Mention Counts
+            <h3 className="text-xs font-medium text-text-secondary">
+              Top asset mention counts
             </h3>
           </div>
           
@@ -158,7 +158,7 @@ export function Analytics() {
                   itemStyle={{ color: 'var(--text-primary)', fontSize: '12px' }}
                   labelStyle={{ color: 'var(--text-muted)', fontSize: '10px' }}
                 />
-                <Bar dataKey="value" fill="#2F81F7" radius={[0, 4, 4, 0]} barSize={12} />
+                <Bar dataKey="value" fill="#D85A30" radius={[0, 4, 4, 0]} barSize={12} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -168,8 +168,8 @@ export function Analytics() {
         <div className="bg-surface border border-surface-border rounded-lg p-5 space-y-4 shadow-sm">
           <div className="flex items-center gap-2 border-b border-surface-border pb-2">
             <Brain className="w-4 h-4 text-accent-blue" />
-            <h3 className="text-xs font-bold uppercase tracking-wider text-text-secondary">
-              Copilot RAG Answer Quality
+            <h3 className="text-xs font-medium text-text-secondary">
+              Copilot RAG answer quality
             </h3>
           </div>
 
@@ -204,8 +204,8 @@ export function Analytics() {
                 <span className="text-xl font-bold font-mono text-text-primary">
                   {Math.round(avgConf)}%
                 </span>
-                <span className="text-[9px] uppercase tracking-wider font-mono text-text-muted">
-                  avg conf
+                <span className="text-[10px] font-medium text-text-muted">
+                  Avg conf
                 </span>
               </div>
             </div>
@@ -253,28 +253,28 @@ export function Analytics() {
       <div className="bg-surface border border-surface-border rounded-lg p-5 space-y-4 shadow-sm">
         <div className="flex items-center gap-2 border-b border-surface-border pb-2">
           <CheckSquare className="w-4 h-4 text-accent-blue" />
-          <h3 className="text-xs font-bold uppercase tracking-wider text-text-secondary">
-            Scanned Compliance Telemetry
+          <h3 className="text-xs font-medium text-text-secondary">
+            Scanned compliance telemetry
           </h3>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center text-xs">
           <div className="p-4 bg-surface-card/40 border border-surface-border rounded-xl space-y-1.5">
-            <span className="text-[10px] text-text-muted uppercase font-mono tracking-widest">Average Compliance Rate</span>
+            <span className="text-[11px] text-text-muted font-medium">Average compliance rate</span>
             <span className="text-2xl font-bold font-mono text-accent-green">
               {Math.round(stats?.compliance?.avg_compliance_rate || 90)}%
             </span>
           </div>
 
           <div className="p-4 bg-surface-card/40 border border-surface-border rounded-xl space-y-1.5">
-            <span className="text-[10px] text-text-muted uppercase font-mono tracking-widest">Most Violated Regulation</span>
+            <span className="text-[11px] text-text-muted font-medium">Most violated regulation</span>
             <span className="text-sm font-bold text-accent-amber truncate block">
               {stats?.compliance?.most_violated_regulation || 'OISD-118'}
             </span>
           </div>
 
           <div className="p-4 bg-surface-card/40 border border-surface-border rounded-xl space-y-1.5">
-            <span className="text-[10px] text-text-muted uppercase font-mono tracking-widest">Total Compliance Runs</span>
+            <span className="text-[11px] text-text-muted font-medium">Total compliance runs</span>
             <span className="text-2xl font-bold font-mono text-accent-blue">
               {stats?.compliance?.total_scans}
             </span>

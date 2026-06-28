@@ -89,9 +89,9 @@ export function Equipment() {
         
         {/* LEFT & CENTER PANEL: PROACTIVE ALERTS BRIEF */}
         <div className="lg:col-span-2 space-y-4">
-          <h3 className="text-sm font-bold uppercase tracking-wider text-text-secondary flex items-center gap-1.5 font-mono select-none">
+          <h3 className="text-xs font-medium text-text-secondary flex items-center gap-1.5 select-none">
             <Lightbulb className="w-4 h-4 text-accent-blue" />
-            Detected Operational Gaps
+            Detected operational gaps
           </h3>
 
           {isLoadingInsights ? (
@@ -131,7 +131,7 @@ export function Equipment() {
 
                     {insight.queries && (
                       <div className="bg-surface border border-surface-border p-2.5 rounded text-[11px] space-y-1 select-none">
-                        <span className="font-bold text-text-muted block text-[9px] uppercase tracking-wider">Unanswered Queries:</span>
+                        <span className="font-medium text-text-muted block text-[10px]">Unanswered queries:</span>
                         {insight.queries.map((q, qIdx) => (
                           <div key={qIdx} className="text-text-secondary font-mono italic">"{q}"</div>
                         ))}
@@ -153,14 +153,14 @@ export function Equipment() {
 
         {/* RIGHT PANEL: EQUIPMENT RISK HEATMAP */}
         <div className="space-y-4">
-          <h3 className="text-sm font-bold uppercase tracking-wider text-text-secondary flex items-center gap-1.5 font-mono select-none">
+          <h3 className="text-xs font-medium text-text-secondary flex items-center gap-1.5 select-none">
             <BarChart2 className="w-4 h-4 text-accent-blue" />
-            Asset Failure Risk
+            Asset failure risk
           </h3>
 
           <div className="bg-surface-card border border-surface-border rounded-lg p-5 space-y-4 shadow-sm">
             <div className="space-y-1.5 pb-3 border-b border-surface-border select-none">
-              <span className="text-[10px] text-text-muted block font-mono uppercase tracking-wider">Asset Filter</span>
+              <span className="text-[11px] text-text-muted block font-medium">Asset filter</span>
               <div className="relative">
                 <input
                   type="text"
@@ -201,7 +201,7 @@ export function Equipment() {
                         </span>
                         <div className="flex items-center gap-2">
                           <span className={`font-mono font-semibold ${textColor}`}>{scoreCard.risk_score}</span>
-                          <span className={`text-[9px] uppercase font-bold tracking-wider capitalize ${textColor}`}>
+                          <span className={`text-[10px] font-medium capitalize ${textColor}`}>
                             ({scoreCard.risk_level})
                           </span>
                         </div>

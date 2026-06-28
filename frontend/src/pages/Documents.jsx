@@ -277,10 +277,10 @@ export function Documents() {
           {/* Dropzone */}
           <div
             {...getRootProps()}
-            className={`border-2 border-dashed rounded-xl flex flex-col items-center justify-center cursor-pointer transition-all duration-200 py-8 px-4 ${
+            className={`border-2 border-dashed rounded-xl flex flex-col items-center justify-center cursor-pointer transition-all duration-300 py-8 px-4 dropzone-hover ${
               isDragActive
-                ? 'border-accent-blue bg-accent-blue/5 dropzone-active'
-                : 'border-surface-border hover:border-accent-blue/50 hover:bg-surface-card/60'
+                ? 'border-[#D85A30] bg-[#D85A30]/5 dropzone-active'
+                : 'border-surface-border hover:bg-surface-card/60'
             }`}
           >
             <input {...getInputProps()} />
@@ -300,8 +300,8 @@ export function Documents() {
           {/* Selected files list */}
           {files.length > 0 && (
             <div className="bg-surface rounded-lg border border-surface-border divide-y divide-surface-border/60">
-              <p className="text-[10px] font-semibold text-text-muted uppercase tracking-wider px-3 py-2">
-                Selected ({files.length})
+              <p className="text-[11px] font-medium text-text-muted px-3 py-2">
+                Selected files ({files.length})
               </p>
               {files.map((file, idx) => (
                 <div key={idx} className="flex justify-between items-center px-3 py-2 text-xs">
@@ -360,7 +360,7 @@ export function Documents() {
           <button
             onClick={handleUpload}
             disabled={files.length === 0 || uploadMutation.isPending}
-            className="w-full btn-primary py-2 text-sm disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100"
+            className="w-full bg-[#D85A30] hover:bg-[#D85A30]/90 text-white font-medium text-sm py-2.5 px-4 rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer active:scale-95 duration-150 shadow-sm"
           >
             <Upload className="w-4 h-4" />
             {uploadMutation.isPending ? 'Uploading…' : 'Ingest & Process Documents'}
@@ -371,7 +371,7 @@ export function Documents() {
         {jobProgress && (
           <div className="w-full lg:w-[300px] card flex flex-col justify-between space-y-4">
             <div className="flex justify-between items-center">
-              <h3 className="text-sm font-semibold text-text-primary">Ingestion Active</h3>
+              <h3 className="text-sm font-medium text-text-primary">Ingestion active</h3>
               <span className="flex h-2.5 w-2.5 relative">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-amber opacity-75" />
                 <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-accent-amber" />
@@ -379,7 +379,7 @@ export function Documents() {
             </div>
 
             <div className="flex justify-between text-xs">
-              <span className="text-text-secondary">Status:</span>
+              <span className="text-text-secondary">Pipeline status:</span>
               <span className={`font-semibold uppercase tracking-wider text-[10px] ${
                 jobProgress.status === 'completed' ? 'text-accent-green'
                 : jobProgress.status === 'failed' ? 'text-accent-red'
@@ -500,13 +500,13 @@ export function Documents() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-surface border-b border-surface-border">
-                  <th className="px-4 py-3 text-[10px] uppercase tracking-wider text-text-muted font-semibold">Filename</th>
-                  <th className="px-4 py-3 text-[10px] uppercase tracking-wider text-text-muted font-semibold">Type</th>
-                  <th className="px-4 py-3 text-[10px] uppercase tracking-wider text-text-muted font-semibold">Pipeline</th>
-                  <th className="px-4 py-3 text-[10px] uppercase tracking-wider text-text-muted font-semibold">Compliance</th>
-                  <th className="px-4 py-3 text-[10px] uppercase tracking-wider text-text-muted font-semibold text-center">Entities</th>
-                  <th className="px-4 py-3 text-[10px] uppercase tracking-wider text-text-muted font-semibold">Indexed</th>
-                  <th className="px-4 py-3 text-[10px] uppercase tracking-wider text-text-muted font-semibold">Tags</th>
+                  <th className="px-4 py-3 text-[11px] text-text-muted font-medium">Filename</th>
+                  <th className="px-4 py-3 text-[11px] text-text-muted font-medium">Type</th>
+                  <th className="px-4 py-3 text-[11px] text-text-muted font-medium">Pipeline</th>
+                  <th className="px-4 py-3 text-[11px] text-text-muted font-medium">Compliance</th>
+                  <th className="px-4 py-3 text-[11px] text-text-muted font-medium text-center">Entities</th>
+                  <th className="px-4 py-3 text-[11px] text-text-muted font-medium">Indexed</th>
+                  <th className="px-4 py-3 text-[11px] text-text-muted font-medium">Tags</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-surface-border/60 text-sm">
@@ -667,20 +667,20 @@ export function Documents() {
                   {/* Contradiction warning */}
                   {docDetails.contradictions?.length > 0 && (
                     <div className="border border-accent-red/30 bg-accent-red/5 rounded-xl p-4 space-y-3">
-                      <div className="flex items-center gap-2 text-accent-red font-semibold text-xs uppercase tracking-wider">
-                        <AlertCircle className="w-4 h-4" />
-                        {docDetails.contradictions.length} Contradiction{docDetails.contradictions.length > 1 ? 's' : ''} Detected
-                      </div>
+                  <div className="flex items-center gap-2 text-accent-red font-medium text-xs">
+                    <AlertCircle className="w-4 h-4" />
+                    {docDetails.contradictions.length} contradiction{docDetails.contradictions.length > 1 ? 's' : ''} detected
+                  </div>
                       {docDetails.contradictions.map((c, i) => (
                         <div key={i} className="text-[11px] text-text-secondary space-y-2">
                           <div className="font-semibold text-text-primary">Topic: {c.topic} ({c.equipment_tag})</div>
                           <div className="grid grid-cols-2 gap-2">
                             <div className="bg-surface p-2 rounded-lg border border-surface-border text-[10px]">
-                              <span className="text-accent-blue block font-bold uppercase text-[9px] mb-0.5">This Doc:</span>
+                              <span className="text-accent-blue block font-medium text-[10px] mb-0.5">This doc:</span>
                               "{c.new_doc_says}"
                             </div>
                             <div className="bg-surface p-2 rounded-lg border border-surface-border text-[10px]">
-                              <span className="text-text-muted block font-bold uppercase text-[9px] mb-0.5">{c.related_filename}:</span>
+                              <span className="text-text-muted block font-medium text-[10px] mb-0.5">{c.related_filename}:</span>
                               "{c.existing_doc_says}"
                             </div>
                           </div>
@@ -767,7 +767,7 @@ export function Documents() {
                         <p className="text-text-secondary leading-relaxed">{compareResult.summary}</p>
                         {compareResult.added_entities.length > 0 && (
                           <div className="space-y-1">
-                            <span className="text-accent-green font-bold text-[9px] uppercase tracking-wider block">
+                          <span className="text-accent-green font-medium text-[10px] block">
                               Added ({compareResult.added_entities.length})
                             </span>
                             <div className="flex flex-wrap gap-1">
@@ -782,7 +782,7 @@ export function Documents() {
                         )}
                         {compareResult.removed_entities.length > 0 && (
                           <div className="space-y-1">
-                            <span className="text-accent-red font-bold text-[9px] uppercase tracking-wider block">
+                          <span className="text-accent-red font-medium text-[10px] block">
                               Removed ({compareResult.removed_entities.length})
                             </span>
                             <div className="flex flex-wrap gap-1">

@@ -188,73 +188,119 @@ export function Compliance() {
 
   return (
     <div className="space-y-6">
-      {/* Scan Control Panel */}
-      <div className="bg-surface-card border border-surface-border rounded-md p-5 space-y-4 select-none">
-        <div className="flex justify-between items-center">
-          <h2 className="text-base font-semibold text-text-primary">
-            Run Automated Regulatory Scan
-          </h2>
-          <span className="text-xs text-text-muted">Est. Duration: ~40s</span>
-        </div>
+      {/* Unified Scan Panel Card */}
+      {!scanResult && (
+        <div className="bg-surface-card border border-surface-border rounded-xl p-5 space-y-5 select-none shadow-sm">
+          <div className="flex justify-between items-start">
+            <div className="space-y-1">
+              <h2 className="text-base font-semibold text-text-primary">
+                Run automated regulatory scan
+              </h2>
+              <p className="text-xs text-text-secondary leading-relaxed">
+                Trigger a compliance scan using plant records to detect calibration delays, safety officer status, or missing training procedures.
+              </p>
+            </div>
+            <span className="text-xs text-text-muted">Est. duration: ~40s</span>
+          </div>
 
-        <div className="space-y-3">
-          <div className="flex flex-wrap gap-2">
-            {REGULATIONS.map((reg) => {
-              const isSelected = selectedRegs.includes(reg);
-              return (
-                <button
-                  key={reg}
-                  onClick={() => toggleRegulation(reg)}
-                  disabled={isScanning}
-                  className={`text-xs px-3.5 py-1.5 rounded-full border transition-all duration-150 active:scale-95 ${
-                    isSelected
-                      ? 'bg-accent-blue/15 border-accent-blue text-accent-blue font-semibold shadow-sm'
-                      : 'border-surface-border text-text-secondary hover:text-text-primary hover:bg-surface-card'
-                  }`}
-                >
-                  {reg}
-                </button>
-              );
-            })}
+          <div className="space-y-3">
+            <div className="flex flex-wrap gap-2">
+              {REGULATIONS.map((reg) => {
+                const isSelected = selectedRegs.includes(reg);
+                return (
+                  <button
+                    key={reg}
+                    onClick={() => toggleRegulation(reg)}
+                    disabled={isScanning}
+                    className={`text-xs px-3.5 py-1.5 rounded-full border transition-all duration-150 active:scale-95 ${
+                      isSelected
+                        ? 'bg-accent-blue/15 border-accent-blue text-accent-blue font-semibold shadow-sm'
+                        : 'border-surface-border text-text-secondary hover:text-text-primary hover:bg-surface-card'
+                    }`}
+                  >
+                    {reg}
+                  </button>
+                );
+              })}
+            </div>
           </div>
-        </div>
 
-        <div className="flex items-center gap-3">
-          <button
-            onClick={handleRunScan}
-            disabled={selectedRegs.length === 0 || isScanning}
-            className="btn-primary text-sm flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100"
-          >
-            {isScanning ? (
-              <>
-                <RefreshCw className="w-4 h-4 animate-spin" />
-                Scanning Plant Documents...
-              </>
-            ) : (
-              <>
-                <Play className="w-4 h-4" />
-                Initiate Compliance Audit
-              </>
-            )}
-          </button>
-        </div>
-      </div>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleRunScan}
+              disabled={selectedRegs.length === 0 || isScanning}
+              className="btn-primary text-sm flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100"
+            >
+              {isScanning ? (
+                <>
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                  Scanning plant documents...
+                </>
+              ) : (
+                <>
+                  <Play className="w-4 h-4" />
+                  Initiate compliance audit
+                </>
+              )}
+            </button>
+          </div>
 
-      {/* Audit Scanning Active Placeholder */}
-      {isScanning && (
-        <div className="bg-surface-card border border-surface-border rounded-md p-8 text-center space-y-4">
-          <div className="flex justify-center">
-            <ShieldAlert className="w-12 h-12 text-accent-amber animate-pulse" />
-          </div>
-          <div className="space-y-1">
-            <h3 className="text-base font-bold text-text-primary">Analyzing Plant Documentation</h3>
-            <p className="text-xs text-text-secondary max-w-sm mx-auto">
-              Scanning vectors and running LLM checks on regulations for {selectedRegs.join(', ')}...
-            </p>
-          </div>
-          <div className="w-48 bg-surface h-2 rounded-full overflow-hidden mx-auto border border-surface-border">
-            <div className="bg-accent-amber h-full rounded-full animate-[shimmer-anim_2s_infinite]" style={{ width: '40%' }} />
-          </div>
+          {/* Audit Scanning Active Placeholder */}
+          {isScanning && (
+            <div className="pt-5 border-t border-surface-border text-center space-y-4 animate-pulse">
+              <div className="flex justify-center">
+                <ShieldAlert className="w-12 h-12 text-accent-amber animate-bounce" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-base font-bold text-text-primary">Analyzing plant documentation</h3>
+                <p className="text-xs text-text-secondary max-w-sm mx-auto">
+                  Scanning vectors and running LLM checks on regulations for {selectedRegs.join(', ')}...
+                </p>
+              </div>
+              <div className="w-48 bg-surface h-2 rounded-full overflow-hidden mx-auto border border-surface-border">
+                <div className="bg-accent-amber h-full rounded-full" style={{ width: '45%' }} />
+              </div>
+            </div>
+          )}
+
+          {/* Past Scan History table (placeholder data) */}
+          {!isScanning && (
+            <div className="pt-5 border-t border-surface-border space-y-3">
+              <h3 className="text-xs font-medium text-text-secondary">Past scan history</h3>
+              <div className="border border-surface-border rounded-lg overflow-hidden bg-surface">
+                <table className="w-full text-xs text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-surface-border text-text-muted font-mono text-[9px] uppercase bg-surface-card/50">
+                      <th className="p-3 font-semibold">Scan Date</th>
+                      <th className="p-3 font-semibold">Regulations</th>
+                      <th className="p-3 font-semibold">Gaps Found</th>
+                      <th className="p-3 font-semibold text-right">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-surface-border/50">
+                    <tr className="hover:bg-surface-card/30">
+                      <td className="p-3 font-medium text-text-primary">2026-06-25 14:32</td>
+                      <td className="p-3 text-text-secondary">OISD-118, Factory Act</td>
+                      <td className="p-3"><span className="inline-flex px-2 py-0.5 text-[9px] font-semibold border rounded badge-success bg-accent-green/10 text-accent-green border-accent-green/20">0 Gaps</span></td>
+                      <td className="p-3 text-right text-accent-green font-semibold">Passed</td>
+                    </tr>
+                    <tr className="hover:bg-surface-card/30">
+                      <td className="p-3 font-medium text-text-primary">2026-06-18 09:15</td>
+                      <td className="p-3 text-text-secondary">PESO, ISO-9001</td>
+                      <td className="p-3"><span className="inline-flex px-2 py-0.5 text-[9px] font-semibold border rounded badge-warning bg-accent-amber/10 text-accent-amber border-accent-amber/20">2 Gaps</span></td>
+                      <td className="p-3 text-right text-accent-amber font-semibold">Gaps Found</td>
+                    </tr>
+                    <tr className="hover:bg-surface-card/30">
+                      <td className="p-3 font-medium text-text-primary">2026-06-10 11:04</td>
+                      <td className="p-3 text-text-secondary">OISD-118, PESO</td>
+                      <td className="p-3"><span className="inline-flex px-2 py-0.5 text-[9px] font-semibold border rounded badge-danger bg-accent-red/10 text-accent-red border-accent-red/20">5 Gaps</span></td>
+                      <td className="p-3 text-right text-accent-red font-semibold">Action Required</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -264,10 +310,10 @@ export function Compliance() {
           {/* Summary Cards */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {[
-              { label: 'Total Checked', value: scanResult.summary.total_requirements_checked, suffix: '', border: 'border-surface-border' },
+              { label: 'Total checked', value: scanResult.summary.total_requirements_checked, suffix: '', border: 'border-surface-border' },
               { label: 'Compliant', value: scanResult.summary.compliant, suffix: ' ✓', border: 'border-accent-green/30 text-accent-green' },
-              { label: 'Gaps Found', value: scanResult.summary.gaps_found, suffix: ' ⚠', border: 'border-accent-amber/30 text-accent-amber' },
-              { label: 'Critical Gaps', value: scanResult.summary.critical_gaps, suffix: ' ✗', border: 'border-accent-red/30 text-accent-red' },
+              { label: 'Gaps found', value: scanResult.summary.gaps_found, suffix: ' ⚠', border: 'border-accent-amber/30 text-accent-amber' },
+              { label: 'Critical gaps', value: scanResult.summary.critical_gaps, suffix: ' ✗', border: 'border-accent-red/30 text-accent-red' },
             ].map((card, idx) => (
               <div key={idx} className={`bg-surface-card border rounded-md p-4 space-y-1.5 text-center ${card.border}`}>
                 <div className="text-xs text-text-secondary select-none">{card.label}</div>
@@ -304,15 +350,15 @@ export function Compliance() {
                 <span className="text-2xl font-bold font-mono text-text-primary">
                   {scanResult.summary.total_requirements_checked}
                 </span>
-                <span className="text-[9px] uppercase tracking-widest text-text-muted font-semibold">
-                  Rules Checked
+                <span className="text-[10px] font-medium text-text-muted">
+                  Rules checked
                 </span>
               </div>
             </div>
 
             {/* Legend & Details */}
             <div className="flex-1 space-y-3 select-none">
-              <h3 className="text-sm font-semibold text-text-primary">Audit Score Breakdowns</h3>
+              <h3 className="text-xs font-medium text-text-secondary">Audit score breakdowns</h3>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 {[
                   { name: 'Compliant', count: scanResult.summary.compliant, pct: Math.round(scanResult.summary.compliant/scanResult.summary.total_requirements_checked * 100) || 0, color: 'bg-accent-green', border: 'border-accent-green' },
@@ -338,7 +384,7 @@ export function Compliance() {
           <div className="space-y-4">
             <div className="flex justify-between items-center select-none">
               <div className="flex items-center gap-2">
-                <h3 className="text-base font-semibold text-text-primary">Compliance Gaps Found</h3>
+                <h3 className="text-base font-semibold text-text-primary">Compliance gaps found</h3>
                 <span className="px-2 py-0.5 bg-accent-red/10 text-accent-red border border-accent-red/20 rounded-full text-xs font-bold font-mono">
                   {scanResult.summary.gaps_found}
                 </span>
@@ -350,7 +396,7 @@ export function Compliance() {
                 className="hidden lg:flex items-center gap-2 text-xs border border-accent-blue/30 text-accent-blue hover:bg-accent-blue/10 py-1.5 px-3 rounded font-semibold transition-colors"
               >
                 <Download className="w-3.5 h-3.5" />
-                Export Evidence Package
+                Export evidence package
               </button>
             </div>
 
@@ -404,7 +450,7 @@ export function Compliance() {
                         <div className="px-4 pb-4 pt-4 space-y-4 bg-surface select-text cursor-default">
                           {/* Requirement */}
                           <div className="space-y-1">
-                            <span className="text-[10px] font-bold text-text-secondary uppercase tracking-wider block">Requirement Definition</span>
+                            <span className="text-[11px] font-medium text-text-secondary block">Requirement definition</span>
                             <p className="text-xs text-text-secondary leading-relaxed pl-2 border-l-2 border-surface-border">
                               {gap.requirement}
                             </p>
@@ -412,7 +458,7 @@ export function Compliance() {
 
                           {/* Audit Finding */}
                           <div className="space-y-1">
-                            <span className="text-[10px] font-bold text-text-secondary uppercase tracking-wider block">Audit Finding</span>
+                            <span className="text-[11px] font-medium text-text-secondary block">Audit finding</span>
                             <p className="text-sm text-text-primary leading-relaxed font-medium">
                               {gap.finding}
                             </p>
@@ -422,7 +468,7 @@ export function Compliance() {
                           <div className="bg-accent-amber/5 border border-accent-amber/20 rounded-md p-3 space-y-1.5 flex items-start gap-2.5">
                             <Wrench className="w-4.5 h-4.5 text-accent-amber flex-shrink-0 mt-0.5" />
                             <div>
-                              <span className="text-[10px] font-bold text-accent-amber uppercase tracking-wider block">Recommended Remediation Action</span>
+                              <span className="text-[11px] font-medium text-accent-amber block">Recommended remediation action</span>
                               <p className="text-xs text-text-primary leading-normal mt-0.5 font-medium">
                                 {gap.recommended_action}
                               </p>
@@ -432,7 +478,7 @@ export function Compliance() {
                           {/* Evidence Documents */}
                           {gap.evidence_documents && gap.evidence_documents.length > 0 && (
                             <div className="space-y-1.5">
-                              <span className="text-[10px] font-bold text-text-secondary uppercase tracking-wider block">Analyzed Evidence Documents</span>
+                              <span className="text-[11px] font-medium text-text-secondary block">Analyzed evidence documents</span>
                               <div className="flex flex-wrap gap-2">
                                 {gap.evidence_documents.map((doc, dIdx) => (
                                   <div key={dIdx} className="flex items-center gap-1.5 bg-surface border border-surface-border px-2.5 py-1 rounded-lg text-xs font-mono text-text-primary select-none hover:bg-surface-card transition-colors">
@@ -454,16 +500,6 @@ export function Compliance() {
         </div>
       )}
 
-      {/* Default/Empty View */}
-      {!scanResult && !isScanning && (
-        <EmptyState 
-          icon="shield" 
-          title="Regulatory Compliance Dashboard" 
-          subtitle="Trigger a compliance scan using plant records to detect calibration delays, safety officer status, or missing training procedures."
-          action="Select regulation rules and click 'Initiate Compliance Audit' above to run the scan."
-        />
-      )}
-
       {/* MOBILE EXPORT STICKY BOTTOM BUTTON */}
       {scanResult && !isScanning && (
         <div className="lg:hidden fixed bottom-[64px] left-0 right-0 p-3 bg-surface-sidebar border-t border-surface-border z-40 flex select-none">
@@ -472,7 +508,7 @@ export function Compliance() {
             className="w-full flex items-center justify-center gap-2 bg-accent-blue hover:bg-accent-blue/90 text-white text-sm font-semibold py-2 px-4 rounded shadow-lg transition-colors"
           >
             <Download className="w-4 h-4" />
-            Export Evidence Package
+            Export evidence package
           </button>
         </div>
       )}

@@ -82,9 +82,9 @@ export function Insights() {
         
         {/* LEFT & CENTER PANEL: PROACTIVE ALERTS BRIEF */}
         <div className="lg:col-span-2 space-y-4">
-          <h3 className="text-sm font-bold uppercase tracking-wider text-text-secondary flex items-center gap-1.5">
+          <h3 className="text-xs font-medium text-text-secondary flex items-center gap-1.5">
             <Lightbulb className="w-4 h-4 text-accent-blue" />
-            Platform Detected Insights
+            Platform detected insights
           </h3>
 
           {isLoadingInsights ? (
@@ -123,15 +123,15 @@ export function Insights() {
                     </p>
 
                     {insight.queries && (
-                      <div className="bg-[#1C2128] border border-surface-border p-2.5 rounded text-[11px] space-y-1 select-none">
-                        <span className="font-bold text-text-muted block text-[9px] uppercase tracking-wider">Unanswered Queries:</span>
+                      <div className="bg-surface-card border border-surface-border p-2.5 rounded text-[11px] space-y-1 select-none">
+                        <span className="font-medium text-text-muted block text-[10px]">Unanswered queries:</span>
                         {insight.queries.map((q, qIdx) => (
                           <div key={qIdx} className="text-text-secondary font-mono italic">"{q}"</div>
                         ))}
                       </div>
                     )}
 
-                    <div className="flex justify-between items-center text-xs bg-[#1C2128]/40 border border-surface-border/40 p-2.5 rounded text-accent-blue font-semibold mt-2 select-none">
+                    <div className="flex justify-between items-center text-xs bg-surface-card/40 border border-surface-border/40 p-2.5 rounded text-accent-blue font-semibold mt-2 select-none">
                       <span className="flex items-center gap-1">
                         <ArrowRight className="w-3.5 h-3.5" />
                         Recommended Action: {insight.action}
@@ -146,23 +146,23 @@ export function Insights() {
 
         {/* RIGHT PANEL: EQUIPMENT RISK HEATMAP */}
         <div className="space-y-4">
-          <h3 className="text-sm font-bold uppercase tracking-wider text-text-secondary flex items-center gap-1.5">
+          <h3 className="text-xs font-medium text-text-secondary flex items-center gap-1.5">
             <BarChart2 className="w-4 h-4 text-accent-blue" />
-            Asset Failure Risk Heatmap
+            Asset failure risk heatmap
           </h3>
 
           <div className="bg-surface border border-surface-border rounded-lg p-5 space-y-4 shadow-sm">
             <div className="space-y-1 pb-2 border-b border-surface-border">
-              <span className="text-[10px] text-text-muted block font-mono uppercase tracking-wider">Predictive Modeling</span>
+              <span className="text-[11px] text-text-muted block font-medium">Predictive modeling</span>
               <p className="text-xs text-text-secondary">
                 Calculated failure hazard ratings based on maintenance logs, compliance checklists, and operating procedure updates.
               </p>
             </div>
 
             {isLoadingRisk ? (
-              <div className="space-y-4 py-4 animate-pulse">
+              <div className="space-y-4 py-4">
                 {[1, 2, 3, 4].map((n) => (
-                  <div key={n} className="h-6 bg-[#30363D] rounded w-full" />
+                  <div key={n} className="shimmer-bg h-4 rounded w-full" />
                 ))}
               </div>
             ) : riskScores.length === 0 ? (
@@ -179,13 +179,13 @@ export function Insights() {
                         <span className="font-mono font-bold text-accent-blue">{scoreCard.equipment_tag}</span>
                         <div className="flex items-center gap-2">
                           <span className={`font-mono font-semibold ${textColor}`}>{scoreCard.risk_score}</span>
-                          <span className={`text-[10px] uppercase font-bold tracking-wider capitalize ${textColor}`}>
+                          <span className={`text-[10px] font-medium capitalize ${textColor}`}>
                             ({scoreCard.risk_level})
                           </span>
                         </div>
                       </div>
                       
-                      <div className="w-full bg-[#21262D] h-2 rounded-full overflow-hidden">
+                      <div className="w-full bg-surface h-2 rounded-full overflow-hidden border border-surface-border">
                         <div 
                           className={`h-full rounded-full transition-all duration-500 ${barColor}`} 
                           style={{ width: `${scoreCard.risk_score}%` }} 
@@ -197,7 +197,7 @@ export function Insights() {
                           {scoreCard.factors.map((f, fIdx) => (
                             <span 
                               key={fIdx} 
-                              className="bg-[#21262D] border border-surface-border px-1.5 py-0.2 rounded font-mono text-[9px]"
+                              className="bg-surface border border-surface-border px-1.5 py-0.2 rounded font-mono text-[9px]"
                             >
                               • {f}
                             </span>
