@@ -322,14 +322,14 @@ export function Documents() {
             <select
               value={selectedDocType}
               onChange={(e) => setSelectedDocType(e.target.value)}
-              className="flex-1 min-w-[160px] select text-xs py-1.5"
+              className="flex-1 min-w-[160px] bg-surface-card border border-surface-border text-text-primary placeholder:text-text-muted rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-accent-blue/60 transition-colors"
             >
               {DOC_TYPES.map((t) => (
                 <option key={t.value} value={t.value}>{t.label}</option>
               ))}
             </select>
 
-            <div className="flex-1 min-w-[200px] flex items-center input text-xs py-1 gap-2">
+            <div className="flex-1 min-w-[200px] flex items-center bg-surface-card border border-surface-border text-text-primary placeholder:text-text-muted rounded-lg px-3 py-2 text-sm focus-within:border-accent-blue/60 transition-colors gap-2">
               <Filter className="w-3.5 h-3.5 text-text-muted flex-shrink-0" />
               <input
                 type="text"
@@ -434,7 +434,7 @@ export function Documents() {
             placeholder="Search documents by name…"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="input pl-9 py-1.5 text-sm"
+            className="w-full bg-surface-card border border-surface-border text-text-primary placeholder:text-text-muted rounded-lg pl-9 pr-3 py-2 text-sm focus:outline-none focus:border-accent-blue/60 transition-colors"
           />
           {searchQuery && (
             <button
@@ -450,7 +450,7 @@ export function Documents() {
           <select
             value={filterDocType}
             onChange={(e) => setFilterDocType(e.target.value)}
-            className="select py-1.5 text-xs flex-1 sm:flex-none sm:w-44"
+            className="bg-surface-card border border-surface-border text-text-primary placeholder:text-text-muted rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-accent-blue/60 transition-colors flex-1 sm:flex-none sm:w-44"
           >
             <option value="">All Document Types</option>
             {DOC_TYPES.map((t) => (
@@ -463,7 +463,7 @@ export function Documents() {
             placeholder="Filter by tag…"
             value={filterTag}
             onChange={(e) => setFilterTag(e.target.value)}
-            className="input py-1.5 text-xs w-28 sm:w-36"
+            className="bg-surface-card border border-surface-border text-text-primary placeholder:text-text-muted rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-accent-blue/60 transition-colors w-28 sm:w-36"
           />
 
           <button
@@ -741,7 +741,7 @@ export function Documents() {
                           <select
                             value={compareDocId}
                             onChange={(e) => setCompareDocId(e.target.value)}
-                            className="w-full select text-[11px] py-1"
+                            className="w-full bg-surface-card border border-surface-border text-text-primary placeholder:text-text-muted rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-accent-blue/60 transition-colors"
                           >
                             <option value="">— Select version —</option>
                             {docVersions

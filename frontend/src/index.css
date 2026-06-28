@@ -61,6 +61,37 @@
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
+
+  /* ── Form inputs ── */
+  .input {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    border-radius: 8px;
+    padding: 8px 12px;
+    outline: none;
+    transition: border-color 0.15s ease;
+  }
+  .input::placeholder {
+    color: var(--text-muted);
+  }
+  .input:focus {
+    border-color: rgba(216, 90, 48, 0.6);
+  }
+
+  .select {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    border-radius: 8px;
+    padding: 8px 12px;
+    outline: none;
+    cursor: pointer;
+    transition: border-color 0.15s ease;
+  }
+  .select:focus {
+    border-color: rgba(216, 90, 48, 0.6);
+  }
 }
 
 /* ─────────────────────────────────────────
