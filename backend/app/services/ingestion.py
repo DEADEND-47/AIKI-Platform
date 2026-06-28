@@ -316,10 +316,10 @@ async def process_ingestion_job(job_id: str, files_info: List[Dict[str, str]], d
         if errors:
             error_summary = "; ".join(errors)
             db_service.execute_write(
-                "UPDATE jobs SET status = 'completed_with_errors', progress = 100, error = %s WHERE job_id = %s",
+                "UPDATE jobs SET status = 'completed', progress = 100, error = %s WHERE job_id = %s",
                 (error_summary, job_id)
             )
-            print(f"[INGESTION] Completed Job {job_id} with errors: {error_summary}")
+            print(f"[INGESTION] Completed Job {job_id} with some errors: {error_summary}")
         else:
             db_service.execute_write(
                 "UPDATE jobs SET status = 'completed', progress = 100 WHERE job_id = %s",

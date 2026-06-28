@@ -48,7 +48,7 @@ class DBService:
             """
             CREATE TABLE IF NOT EXISTS jobs (
                 job_id VARCHAR(50) PRIMARY KEY,
-                status VARCHAR(20) DEFAULT 'queued',
+                status VARCHAR(50) DEFAULT 'queued',
                 file_count INTEGER,
                 documents_processed INTEGER DEFAULT 0,
                 entities_extracted INTEGER DEFAULT 0,
@@ -63,7 +63,7 @@ class DBService:
                 filename VARCHAR(500),
                 doc_type VARCHAR(50),
                 upload_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                status VARCHAR(20) DEFAULT 'queued',
+                status VARCHAR(50) DEFAULT 'queued',
                 entity_count INTEGER DEFAULT 0,
                 tags TEXT[], -- Note: SQLite ignores TEXT[], behaves as TEXT
                 page_count INTEGER DEFAULT 0
@@ -99,7 +99,7 @@ class DBService:
             """
             CREATE TABLE IF NOT EXISTS compliance_scans (
                 scan_id VARCHAR(50) PRIMARY KEY,
-                status VARCHAR(20),
+                status VARCHAR(50),
                 regulations TEXT[],
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 completed_at TIMESTAMP,
