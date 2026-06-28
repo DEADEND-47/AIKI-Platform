@@ -8,22 +8,22 @@ export default {
     extend: {
       colors: {
         surface: {
-          DEFAULT: '#0D1117',
-          card: '#161B22',
-          sidebar: '#010409',
-          border: '#30363D',
+          DEFAULT: 'var(--bg-primary)',
+          card: 'var(--bg-card)',
+          sidebar: 'var(--bg-sidebar)',
+          border: 'var(--border)',
         },
         accent: {
-          blue: '#2F81F7',
-          green: '#3FB950',
-          amber: '#D29922',
-          red: '#F85149',
-          purple: '#A371F7',
+          blue: 'var(--accent-blue)',
+          green: 'var(--accent-green)',
+          amber: 'var(--accent-amber)',
+          red: 'var(--accent-red)',
+          purple: 'var(--accent-purple)',
         },
         text: {
-          primary: '#E6EDF3',
-          secondary: '#7D8590',
-          muted: '#484F58',
+          primary: 'var(--text-primary)',
+          secondary: 'var(--text-secondary)',
+          muted: 'var(--text-muted)',
         }
       },
       fontFamily: {
@@ -34,3 +34,4 @@ export default {
   },
   plugins: [],
 }
+

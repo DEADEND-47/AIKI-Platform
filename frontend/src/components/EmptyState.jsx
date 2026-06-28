@@ -15,7 +15,7 @@ export function EmptyState({ icon, title, action, subtitle }) {
   
   return (
     <div className="flex flex-col items-center justify-center p-8 text-center bg-surface-card border border-surface-border rounded-md min-h-[300px]">
-      <div className="p-4 bg-[#1C2128] rounded-full border border-surface-border mb-4">
+      <div className="p-4 bg-surface rounded-full border border-surface-border mb-4">
         <IconComponent className="w-8 h-8 text-text-secondary" />
       </div>
       <h3 className="text-lg font-semibold text-text-primary mb-1 select-none">

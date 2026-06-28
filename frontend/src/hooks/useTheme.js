@@ -2,22 +2,32 @@ import { useState, useEffect } from 'react';
 
 const THEMES = {
   dark: {
-    '--bg-primary': '#0D1117',
-    '--bg-card': '#161B22',
-    '--bg-sidebar': '#010409',
-    '--border': '#30363D',
-    '--text-primary': '#E6EDF3',
-    '--text-secondary': '#7D8590',
-    '--accent': '#2F81F7',
+    '--bg-primary': '#181816',
+    '--bg-card': '#22221f',
+    '--bg-sidebar': '#121211',
+    '--border': '#32322e',
+    '--text-primary': '#ecebe6',
+    '--text-secondary': '#a6a49c',
+    '--text-muted': '#787670',
+    '--accent-blue': '#d97756',
+    '--accent-green': '#84a98c',
+    '--accent-amber': '#e0a96d',
+    '--accent-red': '#e07a5f',
+    '--accent-purple': '#b8a1cf',
   },
   light: {
-    '--bg-primary': '#FFFFFF',
-    '--bg-card': '#F6F8FA',
-    '--bg-sidebar': '#F6F8FA',
-    '--border': '#D0D7DE',
-    '--text-primary': '#1F2328',
-    '--text-secondary': '#636C76',
-    '--accent': '#0969DA',
+    '--bg-primary': '#fcfbf9',
+    '--bg-card': '#ffffff',
+    '--bg-sidebar': '#f6f5f2',
+    '--border': '#e6e4df',
+    '--text-primary': '#222220',
+    '--text-secondary': '#6b6964',
+    '--text-muted': '#9a9893',
+    '--accent-blue': '#c96f53',
+    '--accent-green': '#608066',
+    '--accent-amber': '#bfa15f',
+    '--accent-red': '#bf5a43',
+    '--accent-purple': '#8d6e9e',
   },
   industrial: {
     '--bg-primary': '#000000',
@@ -26,7 +36,12 @@ const THEMES = {
     '--border': '#444444',
     '--text-primary': '#FFFFFF',
     '--text-secondary': '#CCCCCC',
-    '--accent': '#FFD700',  // Gold — high visibility
+    '--text-muted': '#888888',
+    '--accent-blue': '#FFD700',
+    '--accent-green': '#00FF00',
+    '--accent-amber': '#FF8C00',
+    '--accent-red': '#FF0000',
+    '--accent-purple': '#DA70D6',
   }
 };
 
@@ -45,3 +60,4 @@ export function useTheme() {
 
   return { theme, setTheme, themes: Object.keys(THEMES) };
 }
+

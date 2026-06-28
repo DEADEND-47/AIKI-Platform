@@ -19,7 +19,7 @@ export function Login() {
       const data = await login({ email, password });
       localStorage.setItem('token', data.access_token);
       localStorage.setItem('user', JSON.stringify(data.user));
-      navigate('/documents');
+      navigate('/');
       window.location.reload(); // Refresh to rebuild layout sidebar with role checks
     } catch (err) {
       setError(err.detail || 'Incorrect email or password. Please try again.');
@@ -58,7 +58,7 @@ export function Login() {
             <label className="text-[10px] uppercase font-mono tracking-wider text-text-muted font-bold block">
               Email Address
             </label>
-            <div className="relative bg-[#161B22] border border-surface-border rounded-md px-3 py-2 flex items-center">
+            <div className="relative bg-surface border border-surface-border rounded-md px-3 py-2 flex items-center">
               <Mail className="w-4 h-4 text-text-muted mr-2.5 flex-shrink-0" />
               <input
                 type="email"
@@ -75,7 +75,7 @@ export function Login() {
             <label className="text-[10px] uppercase font-mono tracking-wider text-text-muted font-bold block">
               Password
             </label>
-            <div className="relative bg-[#161B22] border border-surface-border rounded-md px-3 py-2 flex items-center">
+            <div className="relative bg-surface border border-surface-border rounded-md px-3 py-2 flex items-center">
               <Lock className="w-4 h-4 text-text-muted mr-2.5 flex-shrink-0" />
               <input
                 type="password"

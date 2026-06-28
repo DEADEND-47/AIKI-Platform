@@ -100,7 +100,7 @@ export function Graph() {
 
       {/* Search Input Bar with dropdown */}
       <div className="relative z-20 max-w-xl">
-        <div className="relative bg-[#161B22] border border-surface-border rounded-md px-3 py-2 flex items-center">
+        <div className="relative bg-surface border border-surface-border rounded-md px-3 py-2 flex items-center">
           <Search className="w-4 h-4 text-text-muted mr-2.5 flex-shrink-0" />
           <input
             type="text"
@@ -122,7 +122,7 @@ export function Graph() {
 
         {/* Dropdown Results Box */}
         {showDropdown && searchQuery.trim().length >= 2 && (
-          <div className="absolute top-[42px] left-0 right-0 bg-[#161B22] border border-surface-border rounded-md shadow-2xl z-40 max-h-[200px] overflow-y-auto divide-y divide-surface-border select-none">
+          <div className="absolute top-[42px] left-0 right-0 bg-surface-card border border-surface-border rounded-md shadow-2xl z-40 max-h-[200px] overflow-y-auto divide-y divide-surface-border select-none">
             {isLoadingSearch ? (
               <div className="p-3 text-[10px] text-text-muted italic flex items-center gap-2">
                 <RefreshCw className="w-3.5 h-3.5 animate-spin text-accent-blue" />
@@ -137,7 +137,7 @@ export function Graph() {
                 <button
                   key={ent.entity_id}
                   onClick={() => handleEntitySelect(ent)}
-                  className="w-full text-left p-2.5 hover:bg-[#1C2128] flex items-center justify-between text-xs transition-colors"
+                  className="w-full text-left p-2.5 hover:bg-surface-card flex items-center justify-between text-xs transition-colors"
                 >
                   <div className="flex items-center gap-2">
                     <EntityChip type={ent.type} value={ent.value} />
@@ -243,7 +243,7 @@ export function Graph() {
                     <FileText className="w-4 h-4 text-accent-blue" />
                     Document Information
                   </h4>
-                  <div className="bg-[#161B22] border border-surface-border rounded p-3 space-y-2 text-xs">
+                  <div className="bg-surface border border-surface-border rounded p-3 space-y-2 text-xs">
                     <p className="text-text-secondary">
                       This node represents a source file in the document base. Entities extracted from this document are linked to it in the graph.
                     </p>
@@ -254,10 +254,10 @@ export function Graph() {
                 </div>
               ) : isLoadingDetails ? (
                 <div className="space-y-4 animate-pulse">
-                  <div className="h-4 bg-[#30363D] rounded w-2/3" />
+                  <div className="h-4 bg-surface-border rounded w-2/3" />
                   <div className="space-y-2">
-                    <div className="h-10 bg-[#30363D] rounded w-full" />
-                    <div className="h-10 bg-[#30363D] rounded w-full" />
+                    <div className="h-10 bg-surface-border rounded w-full" />
+                    <div className="h-10 bg-surface-border rounded w-full" />
                   </div>
                 </div>
               ) : entityDetails ? (
@@ -268,7 +268,7 @@ export function Graph() {
                   </h4>
 
                   {entityDetails.relationships.length === 0 ? (
-                    <div className="bg-[#161B22] border border-surface-border p-4 rounded text-center text-[11px] text-text-secondary select-none">
+                    <div className="bg-surface border border-surface-border p-4 rounded text-center text-[11px] text-text-secondary select-none">
                       No derived relations. This node is co-located in other documents.
                     </div>
                   ) : (
@@ -279,14 +279,14 @@ export function Graph() {
                           OPERATES_AT: 'text-accent-amber bg-accent-amber/5 border-accent-amber/20',
                           SUBJECT_TO: 'text-accent-purple bg-accent-purple/5 border-accent-purple/20',
                           HAS_FAILURE: 'text-accent-red bg-accent-red/5 border-accent-red/20',
-                          CO_OCCURS_IN: 'text-text-secondary bg-[#21262D] border-surface-border',
+                          CO_OCCURS_IN: 'text-text-secondary bg-surface border-surface-border',
                         };
                         const relStyle = relLabelColors[rel.relationship_type] || relLabelColors.CO_OCCURS_IN;
                         
                         return (
                           <div 
                             key={idx}
-                            className="bg-[#161B22] border border-surface-border rounded p-3 space-y-2 hover:border-text-muted transition-colors text-xs"
+                            className="bg-surface border border-surface-border rounded p-3 space-y-2 hover:border-text-muted transition-colors text-xs"
                           >
                             <div className="flex flex-wrap items-center gap-1.5">
                               <span className={`text-[8px] font-bold font-mono border rounded px-1.5 py-0.2 select-none ${relStyle}`}>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import ReactMarkdown from 'react-markdown';
 import { 
@@ -29,6 +30,8 @@ const DOC_TYPES = [
 export function Copilot() {
   const queryClient = useQueryClient();
   const { success, error: toastError, info } = useToast();
+  const location = useLocation();
+  const searchRanRef = useRef(false);
   
   // Sessions & Messages States
   const [activeSessionId, setActiveSessionId] = useState(null);
@@ -201,6 +204,16 @@ export function Copilot() {
       top_k: 5
     });
   };
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const queryParam = params.get('q');
+    if (queryParam && !searchRanRef.current) {
+      searchRanRef.current = true;
+      handleSendMessage(queryParam);
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, [location.search]);
 
   const startNewChat = () => {
     setActiveSessionId(null);

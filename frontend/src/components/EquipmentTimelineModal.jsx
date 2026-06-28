@@ -26,7 +26,7 @@ export function EquipmentTimelineModal({ tag, onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 select-none">
-      <div className="bg-[#161B22] border border-surface-border rounded-lg shadow-2xl max-w-lg w-full max-h-[85vh] flex flex-col justify-between overflow-hidden">
+      <div className="bg-surface-card border border-surface-border rounded-lg shadow-2xl max-w-lg w-full max-h-[85vh] flex flex-col justify-between overflow-hidden">
         
         {/* Header */}
         <div className="flex justify-between items-center border-b border-surface-border p-4">
@@ -40,7 +40,7 @@ export function EquipmentTimelineModal({ tag, onClose }) {
           </div>
           <button 
             onClick={onClose}
-            className="p-1 text-text-secondary hover:text-text-primary rounded hover:bg-[#1C2128]"
+            className="p-1 text-text-secondary hover:text-text-primary rounded hover:bg-surface"
           >
             <X className="w-5 h-5" />
           </button>
@@ -58,7 +58,7 @@ export function EquipmentTimelineModal({ tag, onClose }) {
               No historical work orders or inspections recorded for this asset.
             </div>
           ) : (
-            <div className="relative border-l border-[#30363D] ml-2 pl-6 space-y-6 select-text">
+            <div className="relative border-l border-surface-border ml-2 pl-6 space-y-6 select-text">
               {timeline.map((item, idx) => {
                 const isProcedure = item.doc_type.includes('procedure') || item.doc_type.includes('instruction');
                 const isWorkOrder = item.doc_type.includes('record');
@@ -76,7 +76,7 @@ export function EquipmentTimelineModal({ tag, onClose }) {
                           <Calendar className="w-3.5 h-3.5" />
                           {formatDate(item.upload_timestamp)}
                         </span>
-                        <span className="bg-[#1C2128] border border-surface-border px-1.5 py-0.2 rounded font-mono capitalize text-text-secondary">
+                        <span className="bg-surface border border-surface-border px-1.5 py-0.2 rounded font-mono capitalize text-text-secondary">
                           {item.doc_type.replace('_', ' ')}
                         </span>
                       </div>
@@ -99,7 +99,7 @@ export function EquipmentTimelineModal({ tag, onClose }) {
         <div className="border-t border-surface-border p-4 text-center">
           <button 
             onClick={onClose}
-            className="bg-[#21262D] hover:bg-[#30363D] text-text-primary font-semibold text-xs py-2 px-6 rounded border border-surface-border transition-colors w-full"
+            className="bg-surface-card hover:bg-surface text-text-primary font-semibold text-xs py-2 px-6 rounded border border-surface-border transition-colors w-full"
           >
             Close Timeline
           </button>

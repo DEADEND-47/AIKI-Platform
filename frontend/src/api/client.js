@@ -10,21 +10,21 @@ async function request(method, path, body, params) {
     });
   }
   const options = { method, headers: {} };
-  
+
   // Inject JWT Auth Header
   const token = localStorage.getItem('token');
   if (token) {
     options.headers['Authorization'] = `Bearer ${token}`;
   }
-  
-  if (body instanceof FormData) { 
-    options.body = body; 
+
+  if (body instanceof FormData) {
+    options.body = body;
   }
-  else if (body) { 
-    options.headers['Content-Type'] = 'application/json'; 
-    options.body = JSON.stringify(body); 
+  else if (body) {
+    options.headers['Content-Type'] = 'application/json';
+    options.body = JSON.stringify(body);
   }
-  
+
   const res = await fetch(url.toString(), options);
   if (res.status === 401) {
     localStorage.removeItem('token');
@@ -34,9 +34,9 @@ async function request(method, path, body, params) {
     }
     throw new Error('Unauthorized');
   }
-  if (!res.ok) { 
-    const err = await res.json(); 
-    throw err; 
+  if (!res.ok) {
+    const err = await res.json();
+    throw err;
   }
   return res.json();
 }
