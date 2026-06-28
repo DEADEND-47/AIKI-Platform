@@ -182,6 +182,10 @@ class DBService:
         self.add_column_if_not_exists("documents", "is_latest", "BOOLEAN", "TRUE")
         self.add_column_if_not_exists("jobs", "plant_id", "VARCHAR(50)")
         self.add_column_if_not_exists("compliance_scans", "plant_id", "VARCHAR(50)")
+        # V3 contradiction table safety migrations (in case old schema lacks these columns)
+        self.add_column_if_not_exists("contradictions", "doc_id", "VARCHAR(100)")
+        self.add_column_if_not_exists("contradictions", "related_doc_id", "VARCHAR(100)")
+        self.add_column_if_not_exists("contradictions", "resolution", "TEXT")
 
         # Seed default plants
         try:
