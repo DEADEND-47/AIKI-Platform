@@ -49,3 +49,8 @@ async def get_equipment_timeline(tag: str, plant_id: Optional[str] = Query(None)
         })
         
     return timeline
+
+@router.get("/equipment/risk-scores")
+async def get_equipment_risk_scores():
+    from app.services.predictive_engine import calculate_equipment_risk_scores
+    return await calculate_equipment_risk_scores()

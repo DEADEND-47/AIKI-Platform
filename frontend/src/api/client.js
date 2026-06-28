@@ -75,3 +75,13 @@ export const exportScan = (scanId) => request('GET', `/compliance/scans/${scanId
 
 // Health
 export const healthCheck = () => request('GET', '/health');
+
+// Insights
+export const getInsights = (params) => request('GET', '/insights', null, params);
+export const getEquipmentRiskScores = () => request('GET', '/equipment/risk-scores');
+
+// Search
+export const semanticSearch = (q, params) => request('GET', '/search', null, { q, ...params });
+
+// Analytics
+export const getAnalytics = () => request('GET', '/analytics');

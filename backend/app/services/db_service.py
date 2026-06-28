@@ -122,6 +122,20 @@ class DBService:
                 role VARCHAR(20) DEFAULT 'viewer',
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
+            """,
+            """
+            CREATE TABLE IF NOT EXISTS contradictions (
+                contradiction_id VARCHAR(50) PRIMARY KEY,
+                doc_id VARCHAR(50),
+                related_doc_id VARCHAR(50),
+                equipment_tag VARCHAR(50),
+                topic VARCHAR(150),
+                new_doc_says TEXT,
+                existing_doc_says TEXT,
+                severity VARCHAR(20),
+                resolution TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
             """
         ]
         
@@ -140,13 +154,14 @@ class DBService:
         finally:
             cursor.close()
             self.release_connection(conn)
-
+ 
         # Apply schema alterations if not exists
         self.add_column_if_not_exists("documents", "plant_id", "VARCHAR(50)")
         self.add_column_if_not_exists("documents", "version", "INTEGER", "1")
         self.add_column_if_not_exists("documents", "parent_doc_id", "VARCHAR(50)")
         self.add_column_if_not_exists("documents", "is_latest", "BOOLEAN", "TRUE")
         self.add_column_if_not_exists("jobs", "plant_id", "VARCHAR(50)")
+        self.add_column_if_not_exists("compliance_scans", "plant_id", "VARCHAR(50)")
 
         # Seed default plants
         try:

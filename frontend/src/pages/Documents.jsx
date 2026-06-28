@@ -44,6 +44,17 @@ export function Documents() {
 
   const pollIntervalRef = useRef(null);
 
+  // Check URL query parameters for auto-opening doc drawer
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const openDocId = params.get('open');
+    if (openDocId) {
+      setSelectedDocId(openDocId);
+      // Clean up the URL search parameter
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
+
   // react-dropzone
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop: (acceptedFiles) => {
@@ -589,6 +600,34 @@ export function Documents() {
                     <span className="text-text-primary">{formatDate(docDetails.metadata.upload_timestamp)}</span>
                   </div>
                 </div>
+
+                {/* Contradiction Warning Banner */}
+                {docDetails.contradictions && docDetails.contradictions.length > 0 && (
+                  <div className="border border-red-500/30 bg-red-500/5 rounded-lg p-3.5 space-y-2 select-text">
+                    <div className="flex items-center gap-1.5 text-red-400 font-semibold text-xs uppercase tracking-wider">
+                      <AlertCircle className="w-4 h-4 text-red-500" />
+                      {docDetails.contradictions.length} Contradiction{docDetails.contradictions.length > 1 ? 's' : ''} Detected
+                    </div>
+                    {docDetails.contradictions.map((c, i) => (
+                      <div key={i} className="text-[11px] text-[#7D8590] border-t border-surface-border/20 pt-2 first:border-0 first:pt-0">
+                        <div className="font-semibold text-[#E6EDF3] mb-1">Topic: {c.topic} ({c.equipment_tag})</div>
+                        <div className="grid grid-cols-2 gap-2 mt-1">
+                          <div className="bg-[#1C2128] p-1.5 rounded border border-surface-border text-[10px]">
+                            <span className="text-accent-blue block font-bold uppercase text-[9px] mb-0.5">This Doc:</span>
+                            "{c.new_doc_says}"
+                          </div>
+                          <div className="bg-[#1C2128] p-1.5 rounded border border-surface-border text-[10px]">
+                            <span className="text-text-muted block font-bold uppercase text-[9px] mb-0.5">{c.related_filename}:</span>
+                            "{c.existing_doc_says}"
+                          </div>
+                        </div>
+                        <div className="text-[10px] text-accent-amber mt-1 bg-accent-amber/5 border border-accent-amber/20 px-2 py-1 rounded">
+                          💡 <strong>Resolution:</strong> {c.resolution}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
 
                 {/* Tags */}
                 {docDetails.metadata.tags && docDetails.metadata.tags.length > 0 && (

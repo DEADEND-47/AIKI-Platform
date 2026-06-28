@@ -7,6 +7,8 @@ import Copilot from './pages/Copilot';
 import Compliance from './pages/Compliance';
 import Graph from './pages/Graph';
 import Login from './pages/Login';
+import Insights from './pages/Insights';
+import Analytics from './pages/Analytics';
 import ToastContainer from './components/Toast';
 
 // Initialize React Query Client
@@ -40,6 +42,8 @@ export function App() {
             <Route path="/copilot" element={<ProtectedRoute><Copilot /></ProtectedRoute>} />
             <Route path="/compliance" element={<ProtectedRoute><Compliance /></ProtectedRoute>} />
             <Route path="/graph" element={<ProtectedRoute><Graph /></ProtectedRoute>} />
+            <Route path="/insights" element={<ProtectedRoute><Insights /></ProtectedRoute>} />
+            <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
             <Route path="*" element={<Navigate to="/documents" replace />} />
           </Routes>
         </Layout>

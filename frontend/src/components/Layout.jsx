@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { FileText, Brain, ShieldAlert, Hexagon, Moon, LogOut } from 'lucide-react';
+import { FileText, Brain, ShieldAlert, Hexagon, Moon, LogOut, Search, Lightbulb, BarChart2, Sun, Settings } from 'lucide-react';
+import { useTheme } from '../hooks/useTheme';
+import { semanticSearch } from '../api/client';
 
 export function Layout({ children }) {
   const location = useLocation();
@@ -48,11 +50,43 @@ export function Layout({ children }) {
     window.location.reload();
   };
 
+  const { theme, setTheme, themes } = useTheme();
+
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showSearchResults, setShowSearchResults] = useState(false);
+  
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSearchResults([]);
+      setShowSearchResults(false);
+      return;
+    }
+    
+    const delayDebounce = setTimeout(async () => {
+      setIsSearching(true);
+      try {
+        const res = await semanticSearch(searchQuery);
+        setSearchResults(res.results || []);
+        setShowSearchResults(true);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 400);
+    
+    return () => clearTimeout(delayDebounce);
+  }, [searchQuery]);
+
   const navItems = [
     { name: 'Document Hub', path: '/documents', icon: FileText },
     { name: 'Knowledge Copilot', path: '/copilot', icon: Brain },
     { name: 'Compliance', path: '/compliance', icon: ShieldAlert },
     { name: 'Knowledge Graph', path: '/graph', icon: Hexagon },
+    { name: 'Insights Brief', path: '/insights', icon: Lightbulb },
+    { name: 'Analytics', path: '/analytics', icon: BarChart2 },
   ];
 
   // Shield rendering if not logged in
@@ -103,6 +137,55 @@ export function Layout({ children }) {
             </select>
           </div>
 
+          {/* Global Semantic Search Input */}
+          <div className="px-2 py-1 relative select-none">
+            <label className="text-[9px] uppercase font-mono tracking-widest text-[#7D8590] font-bold block mb-1">
+              Global RAG Search
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search tag or spec..."
+                className="w-full bg-[#161B22] border border-surface-border rounded-md pl-8 pr-2.5 py-1.5 text-xs text-text-primary focus:outline-none focus:border-accent-blue transition-all"
+              />
+              <Search className="w-3.5 h-3.5 text-text-secondary absolute left-2.5 top-2.5" />
+              {isSearching && (
+                <span className="absolute right-2.5 top-2.5 w-3 h-3 rounded-full border-t border-accent-blue animate-spin" />
+              )}
+            </div>
+            
+            {/* Search Results Dropdown Overlay */}
+            {showSearchResults && searchResults.length > 0 && (
+              <div className="absolute left-2 right-2 mt-1 bg-[#161B22] border border-surface-border rounded-md shadow-2xl z-50 max-h-56 overflow-y-auto p-1.5 space-y-1 select-text text-left">
+                {searchResults.map((r) => (
+                  <div
+                    key={r.doc_id}
+                    onClick={() => {
+                      setShowSearchResults(false);
+                      setSearchQuery('');
+                      navigate(`/documents?open=${r.doc_id}`);
+                    }}
+                    className="p-2 rounded hover:bg-[#21262D] cursor-pointer border border-transparent hover:border-surface-border/50 transition-all text-[11px] space-y-1"
+                  >
+                    <div className="font-mono font-bold text-accent-blue truncate">{r.filename}</div>
+                    <div className="text-[10px] text-text-muted font-semibold capitalize">{r.doc_type.replace('_', ' ')}</div>
+                    <p className="text-[10px] text-[#7D8590] line-clamp-2 italic leading-normal">
+                      "{r.excerpt.replace(/\*\*/g, '')}"
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+            
+            {showSearchResults && searchResults.length === 0 && (
+              <div className="absolute left-2 right-2 mt-1 bg-[#161B22] border border-surface-border rounded-md shadow-2xl z-50 p-3 text-[11px] text-[#7D8590] italic select-none">
+                No matching excerpts found.
+              </div>
+            )}
+          </div>
+
           {/* Navigation Links */}
           <nav className="space-y-1 pt-2">
             {navItems.map((item) => {
@@ -151,10 +234,19 @@ export function Layout({ children }) {
             </div>
           )}
           <div className="flex items-center justify-between px-2 text-xs text-text-muted select-none">
-            <span>Mode: Dark</span>
-            <button className="text-text-secondary hover:text-text-primary transition-colors p-1 rounded hover:bg-[#1C2128]">
-              <Moon className="w-4 h-4" />
-            </button>
+            <span className="flex items-center gap-1.5 font-semibold">
+              {theme === 'light' ? <Sun className="w-3.5 h-3.5 text-accent-blue" /> : theme === 'industrial' ? <Settings className="w-3.5 h-3.5 text-accent-amber animate-spin" style={{ animationDuration: '4s' }} /> : <Moon className="w-3.5 h-3.5 text-accent-blue" />}
+              Theme:
+            </span>
+            <select
+              value={theme}
+              onChange={(e) => setTheme(e.target.value)}
+              className="bg-[#161B22] border border-surface-border rounded px-1.5 py-0.5 text-[10px] text-text-primary focus:outline-none cursor-pointer capitalize font-mono"
+            >
+              {themes.map(t => (
+                <option key={t} value={t}>{t}</option>
+              ))}
+            </select>
           </div>
           <div className="flex items-center justify-between px-2 text-[10px] font-mono text-text-muted select-none">
             <span>AIKI Platform</span>

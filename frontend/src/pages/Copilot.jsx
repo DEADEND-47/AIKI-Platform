@@ -2,11 +2,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import ReactMarkdown from 'react-markdown';
 import { 
-  Brain, Send, Plus, ChevronDown, ChevronUp, Filter, Calendar, MessageSquare, Menu, X, CheckSquare, RefreshCw
+  Brain, Send, Plus, ChevronDown, ChevronUp, Filter, Calendar, MessageSquare, Menu, X, CheckSquare, RefreshCw,
+  Mic, MicOff, Copy, Download, ChevronRight
 } from 'lucide-react';
 import { queryCopilot, getSessionHistory } from '../api/client';
 import ConfidenceBadge from '../components/ConfidenceBadge';
 import { useToast } from '../hooks/useToast';
+import { useVoiceInput } from '../hooks/useVoiceInput';
+import { exportAnswerAsPDF } from '../utils/exportPDF';
 
 const EXAMPLES = [
   "What is the maintenance history of pump P-101A?",
@@ -25,7 +28,7 @@ const DOC_TYPES = [
 
 export function Copilot() {
   const queryClient = useQueryClient();
-  const { error: toastError, info } = useToast();
+  const { success, error: toastError, info } = useToast();
   
   // Sessions & Messages States
   const [activeSessionId, setActiveSessionId] = useState(null);
@@ -33,6 +36,17 @@ export function Copilot() {
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState('');
   const [showScrollBtn, setShowScrollBtn] = useState(false);
+  
+  // Voice Input Hook
+  const { isListening, startListening, stopListening } = useVoiceInput({
+    onResult: (transcript) => {
+      setInputValue(transcript);
+      setTimeout(() => handleSendMessage(transcript), 600);
+    },
+    onError: (err) => {
+      toastError(`Voice input error: ${err}`);
+    }
+  });
   
   // UI Panels
   const [isMobileSessionOpen, setIsMobileSessionOpen] = useState(false);
@@ -362,6 +376,31 @@ export function Copilot() {
                             <ReactMarkdown>{msg.content}</ReactMarkdown>
                           </div>
 
+                          {/* Export & Action Buttons */}
+                          <div className="flex flex-wrap gap-3 pt-1.5 border-t border-surface-border/20 select-none text-[11px]">
+                            <button 
+                              onClick={() => exportAnswerAsPDF({ query: messages[idx - 1]?.content, confidence_label: msg.confidence_label, content: msg.content, sources: msg.sources })}
+                              className="text-text-muted hover:text-accent-blue flex items-center gap-1 transition-colors"
+                            >
+                              <Download className="w-3.5 h-3.5" /> Export PDF
+                            </button>
+                            <button 
+                              onClick={() => {
+                                navigator.clipboard.writeText(msg.content);
+                                success('Answer copied to clipboard!');
+                              }}
+                              className="text-text-muted hover:text-accent-blue flex items-center gap-1 transition-colors"
+                            >
+                              <Copy className="w-3.5 h-3.5" /> Copy
+                            </button>
+                            <button 
+                              onClick={() => handleSendMessage(`Explain in more detail: ${messages[idx - 1]?.content}`)}
+                              className="text-text-muted hover:text-accent-blue flex items-center gap-1 transition-colors"
+                            >
+                              <ChevronRight className="w-3.5 h-3.5" /> Drill deeper
+                            </button>
+                          </div>
+
                           {/* Response timing details */}
                           {msg.responseTime && (
                             <div className="text-[10px] text-text-muted font-mono select-none">
@@ -501,6 +540,19 @@ export function Copilot() {
               </span>
             )}
 
+            {/* Voice Input Button */}
+            <button
+              onClick={isListening ? stopListening : startListening}
+              className={`p-1.5 rounded transition-all ml-2 mb-0.5 flex-shrink-0 ${
+                isListening
+                  ? 'bg-red-500 animate-pulse text-white font-bold'
+                  : 'text-text-secondary hover:text-text-primary hover:bg-[#21262D]'
+              }`}
+              title={isListening ? 'Stop listening' : 'Voice input'}
+            >
+              {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+            </button>
+
             {/* Send Button */}
             <button
               onClick={() => handleSendMessage()}
@@ -510,6 +562,16 @@ export function Copilot() {
               <Send className="w-4 h-4" />
             </button>
           </div>
+
+          {/* Visual feedback when listening */}
+          {isListening && (
+            <div className="absolute -top-12 left-4 right-4 flex justify-center z-30">
+              <div className="bg-[#161B22] border border-red-500 rounded-full px-4 py-1.5 text-xs text-red-400 flex items-center gap-2 shadow-xl">
+                <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                Listening... speak your question
+              </div>
+            </div>
+          )}
 
           {/* FILTERS PANEL (EXPANDABLE POPOVER) */}
           {isFilterOpen && (

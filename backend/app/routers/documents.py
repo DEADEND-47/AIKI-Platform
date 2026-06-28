@@ -204,6 +204,29 @@ async def get_document(doc_id: str):
         except Exception:
             ts = datetime.datetime.utcnow()
             
+    # Fetch contradictions
+    contra_rows = db_service.execute_read(
+        """
+        SELECT topic, new_doc_says, existing_doc_says, severity, resolution, equipment_tag, related_doc_id
+        FROM contradictions WHERE doc_id = %s
+        """,
+        (doc_id,)
+    )
+    
+    contradictions = []
+    for c in contra_rows:
+        filename_rows = db_service.execute_read("SELECT filename FROM documents WHERE doc_id = %s", (c["related_doc_id"],))
+        related_filename = filename_rows[0]["filename"] if filename_rows else "Existing Document"
+        contradictions.append({
+            "topic": c["topic"],
+            "new_doc_says": c["new_doc_says"],
+            "existing_doc_says": c["existing_doc_says"],
+            "severity": c["severity"],
+            "resolution": c["resolution"],
+            "equipment_tag": c["equipment_tag"],
+            "related_filename": related_filename
+        })
+        
     return {
         "metadata": {
             "doc_id": doc["doc_id"],
@@ -219,7 +242,8 @@ async def get_document(doc_id: str):
             "is_latest": bool(doc.get("is_latest", True)),
             "plant_id": doc.get("plant_id")
         },
-        "entities": entities
+        "entities": entities,
+        "contradictions": contradictions
     }
 
 @router.get("/documents/{doc_id}/versions")
@@ -278,3 +302,86 @@ async def compare_document_versions(doc_id: str, other_doc_id: str):
         "common_entities": common,
         "summary": f"Version comparison completed. {len(added)} new entities added, {len(removed)} entities removed."
     }
+
+@router.get("/search")
+async def semantic_search(q: str, doc_type: Optional[str] = None, limit: int = Query(10, ge=1)):
+    """
+    Semantic search across all document chunks.
+    Returns matching excerpts with highlighted terms and source info.
+    """
+    from app.services.embeddings import embed_texts
+    from app.services.rag_engine import qdrant_client, settings
+    from qdrant_client.models import Filter, FieldCondition, MatchValue
+    import re
+    
+    if not q.strip():
+        return {"query": q, "results": [], "total": 0}
+        
+    # Embed the query
+    try:
+        embeddings = await embed_texts([q], settings.jina_api_key)
+        query_embedding = embeddings[0]
+    except Exception as e:
+        print(f"[SEARCH] Query embedding failed: {e}")
+        query_embedding = [0.0] * 768
+        
+    conditions = []
+    if doc_type:
+        conditions.append(FieldCondition(key="doc_type", match=MatchValue(value=doc_type)))
+        
+    q_filter = Filter(must=conditions) if conditions else None
+    
+    try:
+        if hasattr(qdrant_client, 'search'):
+            results = qdrant_client.search(
+                collection_name=settings.qdrant_collection_name,
+                query_vector=query_embedding,
+                limit=limit * 3,
+                query_filter=q_filter,
+                with_payload=True
+            )
+        else:
+            res = qdrant_client.query_points(
+                collection_name=settings.qdrant_collection_name,
+                query=query_embedding,
+                limit=limit * 3,
+                query_filter=q_filter,
+                with_payload=True
+            )
+            results = res.points
+    except Exception as e:
+        print(f"[SEARCH] Qdrant search failed: {e}")
+        results = []
+        
+    # Deduplicate by document — keep best chunk per doc
+    seen_docs = {}
+    for r in results:
+        payload = r.payload
+        if not payload:
+            continue
+        doc_id = payload.get("doc_id")
+        if not doc_id:
+            continue
+        score = getattr(r, 'score', 0.5)
+        if doc_id not in seen_docs or score > seen_docs[doc_id]["score"]:
+            seen_docs[doc_id] = {
+                "doc_id": doc_id,
+                "filename": payload.get("filename", "document"),
+                "doc_type": payload.get("doc_type", "other"),
+                "page": payload.get("page", 1),
+                "excerpt": payload.get("text", "")[:300] + ("..." if len(payload.get("text", "")) > 300 else ""),
+                "score": float(score)
+            }
+            
+    final = list(seen_docs.values())[:limit]
+    
+    # Highlight terms in excerpts
+    terms = q.split()
+    for item in final:
+        text = item["excerpt"]
+        for term in terms:
+            if len(term) > 2:
+                text = re.sub(f'({re.escape(term)})', r'**\1**', text, flags=re.IGNORECASE)
+        item["excerpt"] = text
+        
+    return {"query": q, "results": final, "total": len(final)}

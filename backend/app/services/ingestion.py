@@ -235,10 +235,22 @@ async def process_ingestion_job(job_id: str, files_info: List[Dict[str, str]], d
                 # 2. Parse File
                 ext = os.path.splitext(filename)[1].lower()
                 pages = []
-                if ext == ".pdf":
+                vision_result = None
+                
+                if ext in (".png", ".jpg", ".jpeg", ".webp"):
+                    from app.services.vision_service import analyze_image_with_groq
+                    vision_result = await analyze_image_with_groq(local_path)
+                    text = f"""Image Analysis Report
+Document Type: {vision_result.get('document_type', 'unknown')}
+Description: {vision_result.get('description', '')}
+Equipment Tags Found: {', '.join(vision_result.get('equipment_tags', []))}
+Process Parameters: {', '.join(vision_result.get('parameters', []))}
+Defects Observed: {', '.join(vision_result.get('defects', []))}
+Condition Assessment: {vision_result.get('condition', 'unknown')}
+"""
+                    pages = [{"page": 1, "text": text}]
+                elif ext == ".pdf":
                     pages = parse_pdf(local_path)
-                elif ext in (".png", ".jpg", ".jpeg"):
-                    pages = parse_image(local_path)
                 elif ext in (".xlsx", ".xls"):
                     pages = parse_xlsx(local_path)
                 elif ext == ".csv":
@@ -269,7 +281,37 @@ async def process_ingestion_job(job_id: str, files_info: List[Dict[str, str]], d
                         continue
                         
                     # 3. Entity Extraction (NER)
-                    entities = extract_entities(page_text, doc_id, page_num)
+                    entities = []
+                    if vision_result:
+                        for tag in vision_result.get("equipment_tags", []):
+                            entities.append({
+                                "entity_id": str(uuid.uuid4()),
+                                "type": "equipment_tag",
+                                "value": tag,
+                                "context": vision_result.get("description", "")[:200],
+                                "page": 1,
+                                "confidence": 0.85
+                            })
+                        for param in vision_result.get("parameters", []):
+                            entities.append({
+                                "entity_id": str(uuid.uuid4()),
+                                "type": "process_parameter",
+                                "value": param,
+                                "context": vision_result.get("description", "")[:200],
+                                "page": 1,
+                                "confidence": 0.80
+                            })
+                        for defect in vision_result.get("defects", []):
+                            entities.append({
+                                "entity_id": str(uuid.uuid4()),
+                                "type": "failure_mode",
+                                "value": defect,
+                                "context": vision_result.get("description", "")[:200],
+                                "page": 1,
+                                "confidence": 0.80
+                            })
+                    else:
+                        entities = extract_entities(page_text, doc_id, page_num)
                     
                     # Deduplicate entities (reuse ID if type & value match)
                     for ent in entities:
@@ -331,6 +373,25 @@ async def process_ingestion_job(job_id: str, files_info: List[Dict[str, str]], d
                     "UPDATE documents SET status = 'completed', entity_count = %s WHERE doc_id = %s",
                     (len(all_extracted_entities), doc_id)
                 )
+                
+                # 6. Contradiction Detection
+                try:
+                    from app.services.contradiction_engine import find_contradictions_for_document
+                    contradictions = await find_contradictions_for_document(doc_id)
+                    if contradictions:
+                        for c in contradictions:
+                            contra_id = str(uuid.uuid4())
+                            related_ids = c.get("related_doc_ids", [])
+                            related_id = related_ids[0] if related_ids else None
+                            db_service.execute_write(
+                                """
+                                INSERT INTO contradictions (contradiction_id, doc_id, related_doc_id, equipment_tag, topic, new_doc_says, existing_doc_says, severity, resolution)
+                                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                                """,
+                                (contra_id, doc_id, related_id, c["equipment_tag"], c["topic"], c["new_doc_says"], c["existing_doc_says"], c["severity"], c["resolution"])
+                            )
+                except Exception as contra_err:
+                    print(f"[ERROR] Contradiction check failed: {contra_err}")
                 
                 documents_processed += 1
                 total_entities_extracted += len(all_extracted_entities)
